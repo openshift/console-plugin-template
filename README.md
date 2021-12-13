@@ -4,7 +4,7 @@ This project is a minimal template for writing a new OpenShift Console dynamic
 plugin. It requires OpenShift 4.10.
 
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
-to build and run the example. When installed, run these commands:
+to build and run the example.
 
 ## Update the plugin metadata
 
