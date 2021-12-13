@@ -1,0 +1,20 @@
+[
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/example",
+      "component": { "$codeRef": "ExamplePage" }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "example",
+      "name": "Plugin Example",
+      "href": "/example",
+      "perspective": "admin",
+      "section": "home"
+    }
+  }
+]
