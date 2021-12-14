@@ -9,9 +9,7 @@ to build and run the example.
 ## Update the plugin metadata
 
 After cloning this repo, you should update the plugin metadata such as the
-plugin name. The metadata is defined in the `consolePlugin` stanza of
-package.json. Additionally, update references to `console-plugin-template` and
-the plugin image in manifest.yaml. Your plugin must have a unique name.
+plugin name in the `consolePlugin` declaration of package.json.
 
 ## Local development
 
@@ -27,36 +25,45 @@ for details on how to run OpenShift console using local plugins.
 When a local console server is running, visit <http://localhost:9000/example>
 to see the example plugin page.
 
+## Docker image
+
+1. Build the image:
+   ```sh
+   docker build -t quay.io/my-repositroy/my-plugin:latest .
+   ```
+2. Run the image:
+   ```sh
+   docker run -it --rm -d -p 9001:80 quay.io/my-repository/my-plugin:latest
+   ```
+3. Push the image to the image registry:
+   ```sh
+   docker push quay.io/my-repository/my-plugin:latest
+   ```
+
 ## Deployment on cluster
 
-You can deploy the plugin to a cluster by applying `manifest.yaml`.
+After pushing an image with your changes to an image registry, you can deploy
+the plugin to a cluster by instantiating the template:
 
 ```sh
-oc apply -f manifest.yaml
+oc process -f template.yaml \
+  -p PLUGIN_NAME=my-plugin \
+  -p NAMESPACE=my-plugin-namespace \
+  -p IMAGE=quay.io/my-repository/my-plugin:latest \
+  | oc create -f -
 ```
+
+The `PLUGIN_NAME` value must match the plugin name you used in the
+`consolePlugin` declaration of package.json.
 
 Once deployed, patch the
 [Console operator](https://github.com/openshift/console-operator)
 config to enable the plugin.
 
 ```sh
-oc patch consoles.operator.openshift.io cluster --patch '{ "spec": { "plugins": ["$PLUGIN_NAME"] } }' --type=merge
+oc patch consoles.operator.openshift.io cluster \
+  --patch '{ "spec": { "plugins": ["my-plugin"] } }' --type=merge
 ```
-
-## Docker image
-
-1. Build the image:
-   ```sh
-   docker build -t quay.io/$USER/$PLUGIN_NAME:latest .
-   ```
-2. Run the image:
-   ```sh
-   docker run -it --rm -d -p 9001:80 quay.io/$USER/$PLUGIN_NAME:latest
-   ```
-3. Push the image to image registry:
-   ```sh
-   docker push quay.io/$USER/$PLUGIN_NAME:latest
-   ```
 
 ## References
 
