@@ -17,7 +17,7 @@ to build and run the example.
 ## Getting started
 
 After cloning this repo, you should update the plugin metadata such as the
-plugin name in the `consolePlugin` declaration of package.json.
+plugin name in the `consolePlugin` declaration of [package.json](package.json).
 
 ```json
 "consolePlugin": {
@@ -90,7 +90,7 @@ oc process -f template.yaml \
 ```
 
 `PLUGIN_NAME` must match the plugin name you used in the `consolePlugin`
-declaration of package.json.
+declaration of [package.json](package.json).
 
 Once deployed, patch the
 [Console operator](https://github.com/openshift/console-operator)
