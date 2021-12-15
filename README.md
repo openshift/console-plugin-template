@@ -6,7 +6,7 @@ plugin. It requires OpenShift 4.10.
 [Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 allow you to extend the
 [OpenShift UI](https://github.com/openshift/console)
-at runtime, adding custom pages and other extensions.  It is based on
+at runtime, adding custom pages and other extensions.  They are based on
 [webpack module federation](https://webpack.js.org/concepts/module-federation/).
 Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
