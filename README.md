@@ -3,13 +3,44 @@
 This project is a minimal template for writing a new OpenShift Console dynamic
 plugin. It requires OpenShift 4.10.
 
+[Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
+allow you to extend the
+[OpenShift UI](https://github.com/openshift/console)
+at runtime, adding custom pages and other extensions.  It is based on
+[webpack module federation](https://webpack.js.org/concepts/module-federation/).
+Plugins are registered with console using the `ConsolePlugin` custom resource
+and enabled in the console operator config by a cluster administrator.
+
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
 to build and run the example.
 
-## Update the plugin metadata
+## Getting started
 
 After cloning this repo, you should update the plugin metadata such as the
 plugin name in the `consolePlugin` declaration of package.json.
+
+```json
+"consolePlugin": {
+  "name": "my-plugin",
+  "version": "0.0.1",
+  "displayName": "My Plugin",
+  "description": "Enjoy this siny, new console plugin!",
+  "exposedModules": {
+    "ExamplePage": "./components/ExamplePage"
+  },
+  "dependencies": {
+    "@console/pluginAPI": "*"
+  }
+}
+```
+
+The template adds a single example page in the Home navigation section. The
+extension is declared in the [console-extensions.json](console-extensions.json)
+file and the React component is declared in
+[src/components/ExamplePage.tsx](src/components/ExamplePage.tsx).
+
+You can run the plugin using a local development environment or build an image
+to deploy it to a cluster.
 
 ## Local development
 
@@ -27,6 +58,9 @@ to see the example plugin page.
 
 ## Docker image
 
+Before you can deploy your plugin on a cluster, you must build an image and
+push it to an image registry.
+
 1. Build the image:
    ```sh
    docker build -t quay.io/my-repositroy/my-plugin:latest .
@@ -35,15 +69,17 @@ to see the example plugin page.
    ```sh
    docker run -it --rm -d -p 9001:80 quay.io/my-repository/my-plugin:latest
    ```
-3. Push the image to the image registry:
+3. Push the image:
    ```sh
    docker push quay.io/my-repository/my-plugin:latest
    ```
 
 ## Deployment on cluster
 
-After pushing an image with your changes to an image registry, you can deploy
-the plugin to a cluster by instantiating the template:
+After pushing an image with your changes to a registry, you can deploy the
+plugin to a cluster by instantiating the provided
+[OpenShift template](template.yaml). It will run a light-weight nginx HTTP
+server to serve your plugin's assets.
 
 ```sh
 oc process -f template.yaml \
@@ -53,8 +89,8 @@ oc process -f template.yaml \
   | oc create -f -
 ```
 
-The `PLUGIN_NAME` value must match the plugin name you used in the
-`consolePlugin` declaration of package.json.
+`PLUGIN_NAME` must match the plugin name you used in the `consolePlugin`
+declaration of package.json.
 
 Once deployed, patch the
 [Console operator](https://github.com/openshift/console-operator)
@@ -69,3 +105,4 @@ oc patch consoles.operator.openshift.io cluster \
 
 * [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 * [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
+* [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
