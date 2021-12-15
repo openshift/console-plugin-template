@@ -24,7 +24,7 @@ plugin name in the `consolePlugin` declaration of [package.json](package.json).
   "name": "my-plugin",
   "version": "0.0.1",
   "displayName": "My Plugin",
-  "description": "Enjoy this siny, new console plugin!",
+  "description": "Enjoy this shiny, new console plugin!",
   "exposedModules": {
     "ExamplePage": "./components/ExamplePage"
   },
