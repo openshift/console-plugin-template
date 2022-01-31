@@ -6,7 +6,7 @@ plugin. It requires OpenShift 4.10.
 [Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 allow you to extend the
 [OpenShift UI](https://github.com/openshift/console)
-at runtime, adding custom pages and other extensions.  They are based on
+at runtime, adding custom pages and other extensions. They are based on
 [webpack module federation](https://webpack.js.org/concepts/module-federation/).
 Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
@@ -42,7 +42,9 @@ file and the React component is declared in
 You can run the plugin using a local development environment or build an image
 to deploy it to a cluster.
 
-## Local development
+## Development
+
+### Option 1: Local
 
 1. `yarn install`
 2. `yarn run start`
@@ -55,6 +57,28 @@ for details on how to run OpenShift console using local plugins.
 
 When a local console server is running, visit <http://localhost:9000/example>
 to see the example plugin page.
+
+### Option 2: Docker + VSCode Remote Container
+
+Make sure the
+[Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+extension is installed. This method uses Docker Compose where one container is
+the OpenShift console and the second container is the plugin. It requires that
+you have access to an existing OpenShift cluster. After the initial build, the
+cached containers will help you start developing in seconds.
+
+1. Create a `dev.env` file inside the `.devcontainer` folder with the correct values for your cluster:
+
+```bash
+OC_PLUGIN_NAME=my-plugin
+OC_URL=https://api.example.com:6443
+OC_USER=kubeadmin
+OC_PASS=<password>
+```
+
+2. `(Ctrl+Shift+P) => Remote Containers: Open Folder in Container...`
+3. `yarn run start`
+4. Navigate to <http://localhost:9000/example>
 
 ## Docker image
 
@@ -103,6 +127,6 @@ oc patch consoles.operator.openshift.io cluster \
 
 ## References
 
-* [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
-* [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
-* [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
+- [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
+- [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
+- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
