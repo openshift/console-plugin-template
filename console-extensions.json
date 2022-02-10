@@ -16,5 +16,20 @@
       "perspective": "admin",
       "section": "home"
     }
+  },
+  {
+    "type": "console.tab/horizontalNav",
+    "properties": {
+      "page": {
+        "name": "Example Tab",
+        "href": "example"
+      },
+      "model": {
+        "group": "core",
+        "version": "v1",
+        "kind": "Pod"
+      },
+      "component": { "$codeRef": "ExampleTab" }
+    }
   }
 ]
