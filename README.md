@@ -51,6 +51,7 @@ to deploy it to a cluster.
 2. `yarn run start`
 3. `oc login` (requires an OpenShift cluster)
 4. `yarn run start-console` (requires Docker or podman)
+5. Navigate to <http://localhost:9000/example>
 
 This will run the OpenShift console in a container connected to the cluster
 you've logged into. The plugin HTTP server runs on port 9001 with CORS enabled.
