@@ -12,7 +12,8 @@ Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
 
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
-to build and run the example.
+to build and run the example. To run OpenShift console in a container, either
+[Docker](https://www.docker.com) or [podman](https://podman.io) are required.
 
 ## Getting started
 
@@ -48,15 +49,11 @@ to deploy it to a cluster.
 
 1. `yarn install`
 2. `yarn run start`
+3. `oc login` (requires an OpenShift cluster)
+4. `yarn run start-console` (requires Docker or podman)
 
-The server runs on port 9001 with CORS enabled.
-
-See the plugin development section in
-[Console Dynamic Plugins README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk/README.md)
-for details on how to run OpenShift console using local plugins.
-
-When a local console server is running, visit <http://localhost:9000/example>
-to see the example plugin page.
+This will run the OpenShift console in a container connected to the cluster
+you've logged into. The plugin HTTP server runs on port 9001 with CORS enabled.
 
 ### Option 2: Docker + VSCode Remote Container
 
