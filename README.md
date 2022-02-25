@@ -14,7 +14,7 @@ and enabled in the console operator config by a cluster administrator.
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
 to build and run the example. To run OpenShift console in a container, either
 [Docker](https://www.docker.com) or [podman 3.2.0+](https://podman.io) and
-[oc](https://mirror.openshift.com/pub/) are required.
+[oc](https://console.redhat.com/openshift/downloads) are required.
 
 ## Getting started
 
@@ -55,7 +55,7 @@ In one terminal window, run:
 
 In another terminal window, run:
 
-1. `oc login` (requires [oc](https://mirror.openshift.com/pub/) and an OpenShift cluster)
+1. `oc login` (requires [oc](https://console.redhat.com/openshift/downloads) and an [OpenShift cluster](https://console.redhat.com/openshift/create))
 2. `yarn run start-console` (requires [Docker](https://www.docker.com) or [podman 3.2.0+](https://podman.io))
 
 This will run the OpenShift console in a container connected to the cluster
