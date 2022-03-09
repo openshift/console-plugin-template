@@ -116,6 +116,10 @@ push it to an image registry.
    docker push quay.io/my-repository/my-plugin:latest
    ```
 
+NOTE: If you have a Mac with Apple silicon, you will need to add the flag
+`--platform=linux/amd64` when building the image to target the correct platform
+to run in-cluster.
+
 ## Deployment on cluster
 
 After pushing an image with your changes to a registry, you can deploy the
