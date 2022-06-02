@@ -46,7 +46,7 @@ objects:
         app.kubernetes.io/part-of: '${PLUGIN_NAME}'
         app.openshift.io/runtime-namespace: '${NAMESPACE}'
     spec:
-      replicas: 1
+      replicas: 2
       selector:
         matchLabels:
           app: '${PLUGIN_NAME}'
@@ -62,6 +62,15 @@ objects:
                 - containerPort: 9443
                   protocol: TCP
               imagePullPolicy: Always
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                  - ALL
+              resources:
+                  requests:
+                    cpu: 10m
+                    memory: 50Mi
               volumeMounts:
                 - name: plugin-serving-cert
                   readOnly: true
@@ -81,6 +90,10 @@ objects:
                 defaultMode: 420
           restartPolicy: Always
           dnsPolicy: ClusterFirst
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
       strategy:
         type: RollingUpdate
         rollingUpdate:
