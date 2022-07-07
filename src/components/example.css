@@ -1,0 +1,7 @@
+/* Prefixing your CSS classes with your plugin name is a best practice to avoid
+ * collisions with other plugin styles. */
+.console-plugin-template__nice {
+  /* Use PF global vars for colors to support dark mode in OpenShift 4.11.
+   * https://patternfly-react-main.surge.sh/developer-resources/global-css-variables */
+  color: var(--pf-global--palette--blue-400);
+}

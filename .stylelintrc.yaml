@@ -7,8 +7,12 @@ rules:
   # https://patternfly-react-main.surge.sh/developer-resources/global-css-variables#global-css-variables
   color-named: never
   color-no-hex: true
+  # PatternFly CSS vars don't conform to stylelint's regex. Disable this rule.
+  custom-property-pattern: null
   function-disallowed-list:
     - rgb
+  # Disable the standard rule to allow BEM-style classnames with underscores.
+  selector-class-pattern: null
   # Disallow CSS classnames prefixed with .pf- or .co- as these prefixes are
   # reserved by PatternFly and OpenShift console.
   selector-disallowed-list:

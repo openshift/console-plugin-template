@@ -7,6 +7,7 @@ import {
   TextContent,
   Title,
 } from '@patternfly/react-core';
+import './example.css';
 
 export default function ExamplePage() {
   return (
@@ -20,7 +21,10 @@ export default function ExamplePage() {
         </PageSection>
         <PageSection variant="light">
           <TextContent>
-            <Text component="p">Nice! Your plugin is working.</Text>
+            <Text component="p">
+              <span className="console-plugin-template__nice">Nice!</span> Your
+              plugin is working.
+            </Text>
             <Text component="p">
               This is a custom page contributed by the console plugin template.
               The extension that adds the page is declared in
