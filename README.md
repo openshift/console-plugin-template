@@ -1,7 +1,16 @@
 # OpenShift Console Plugin Template
 
 This project is a minimal template for writing a new OpenShift Console dynamic
-plugin. It requires OpenShift 4.10.
+plugin. It requires OpenShift 4.10 or newer.
+
+The `release-4.10` branch (this branch) is an example that works with 4.10 and
+newer. We strive to make dynamic plugins forward compatible with future console
+versions, although from time to time we deprecate APIs and update dependencies
+such as react, react-router, patternfly, or i18next to versions that might
+have breaking changes. In general, you should use the version of the plugin
+library for the earliest OpenShift version you want to support. The supported
+versions are documented in the
+[SDK README](https://www.npmjs.com/package/@openshift-console/dynamic-plugin-sdk).
 
 [Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 allow you to extend the
