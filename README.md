@@ -1,7 +1,8 @@
 # OpenShift Console Plugin Template
 
 This project is a minimal template for writing a new OpenShift Console dynamic
-plugin. It requires OpenShift 4.10.
+plugin. It requires OpenShift 4.11. For an example of a plugin that works with
+OpenShift 4.10, see the `release-4.10` branch.
 
 [Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 allow you to extend the
