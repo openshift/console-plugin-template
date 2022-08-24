@@ -105,14 +105,19 @@ Before you can deploy your plugin on a cluster, you must build an image and
 push it to an image registry.
 
 1. Build the image:
+
    ```sh
    docker build -t quay.io/my-repositroy/my-plugin:latest .
    ```
+
 2. Run the image:
+
    ```sh
    docker run -it --rm -d -p 9001:80 quay.io/my-repository/my-plugin:latest
    ```
+
 3. Push the image:
+
    ```sh
    docker push quay.io/my-repository/my-plugin:latest
    ```
@@ -123,29 +128,20 @@ to run in-cluster.
 
 ## Deployment on cluster
 
-After pushing an image with your changes to a registry, you can deploy the
-plugin to a cluster by instantiating the provided
-[OpenShift template](template.yaml). It will run a light-weight nginx HTTP
-server to serve your plugin's assets.
+A [Helm](https://helm.sh) chart is available to deploy the plugin to an OpenShift environment.
 
-```sh
-oc process -f template.yaml \
-  -p PLUGIN_NAME=my-plugin \
-  -p NAMESPACE=my-plugin-namespace \
-  -p IMAGE=quay.io/my-repository/my-plugin:latest \
-  | oc create -f -
-```
+The following Helm parameters are required:
 
-`PLUGIN_NAME` must match the plugin name you used in the `consolePlugin`
-declaration of [package.json](package.json).
+`plugin.image`: The location of the image containing the plugin that was previously pushed
 
-Once deployed, patch the
-[Console operator](https://github.com/openshift/console-operator)
-config to enable the plugin.
+Additional parameters can be specified if desired. Consult the chart [values](charts/openshift-console-plugin/values.yaml) file for the full set of supported parameters.
 
-```sh
-oc patch consoles.operator.openshift.io cluster \
-  --patch '{ "spec": { "plugins": ["my-plugin"] } }' --type=merge
+### Installing the Helm Chart
+
+Install the chart using the name of the plugin as the Helm release name into a new namespace or an existing namespace as specified by the `my-plugin-namespace` parameter by using the following command:
+
+```shell
+helm upgrade -i  my-plugin charts/openshift-console-plugin -n my-plugin-namespace --create-namespace
 ```
 
 ## Linting
