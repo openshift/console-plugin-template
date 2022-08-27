@@ -23,9 +23,8 @@ spec:
             - containerPort: {{ .Values.plugin.port }}
               protocol: TCP
           imagePullPolicy: {{ .Values.plugin.imagePullPolicy }}
-          {{- if .Values.plugin.containerSecurityContext }}
-          securityContext:
-            {{ tpl (toYaml .Values.plugin.containerSecurityContext | indent 12) . }}
+          {{- if and (.Values.plugin.securityContext.enabled) (.Values.plugin.containerSecurityContext) }}
+          securityContext: {{ tpl (toYaml (omit .Values.plugin.containerSecurityContext "enabled")) $ | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.plugin.resources | nindent 12 }}
@@ -48,9 +47,8 @@ spec:
             defaultMode: 420
       restartPolicy: Always
       dnsPolicy: ClusterFirst
-      {{- if .Values.plugin.podSecurityContext }}
-      securityContext:
-        {{ tpl (toYaml .Values.plugin.podSecurityContext | indent 8) . }}
+      {{- if and (.Values.plugin.securityContext.enabled) (.Values.plugin.podSecurityContext) }}
+      securityContext: {{ tpl (toYaml (omit .Values.plugin.podSecurityContext "enabled")) $ | nindent 8 }}
       {{- end }}
   strategy:
     type: RollingUpdate
