@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "repository": "git@github.com:spadgett/console-plugin-template.git",
+  "license": "Apache-2.0",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "yarn clean && NODE_ENV=production yarn ts-node node_modules/.bin/webpack",
