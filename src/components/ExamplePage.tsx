@@ -13,7 +13,7 @@ export default function ExamplePage() {
   return (
     <>
       <Helmet>
-        <title>Hello, Plugin!</title>
+        <title data-test="example-page-title">Hello, Plugin!</title>
       </Helmet>
       <Page>
         <PageSection variant="light">
