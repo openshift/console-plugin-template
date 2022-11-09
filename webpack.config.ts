@@ -83,6 +83,7 @@ if (process.env.NODE_ENV === "production") {
   config.output.chunkFilename = "[name]-chunk-[chunkhash].min.js";
   config.optimization.chunkIds = "deterministic";
   config.optimization.minimize = true;
+  config.devtool = undefined;
 }
 
 export default config;
