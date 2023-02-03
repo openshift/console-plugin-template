@@ -1,4 +1,4 @@
 build_root_image:
-  name: nodejs-10-rhel7
+  name: nodejs-16
   namespace: openshift
   tag: latest
