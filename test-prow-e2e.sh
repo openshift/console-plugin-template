@@ -24,5 +24,10 @@ set -x
 BRIDGE_BASE_ADDRESS="$(oc get consoles.config.openshift.io cluster -o jsonpath='{.status.consoleURL}')"
 export BRIDGE_BASE_ADDRESS
 
+echo "Install dependencies"
+if [ ! -d node_modules ]; then
+  yarn install
+fi
+
 echo "Runs Cypress tests in headless mode"
 yarn run test-cypress-headless

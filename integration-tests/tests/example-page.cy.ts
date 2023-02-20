@@ -73,6 +73,8 @@ if (!Cypress.env('OPENSHIFT_CI') || Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC')) {
       cy.url().should('include', '/example');
     });
     it('Verify the example page title', () => {
+      cy.get('[data-quickstart-id="qs-nav-home"]').click();
+      cy.get('[data-test="nav"]').contains('Plugin Example').click();
       cy.get('[data-test="example-page-title"]').should(
         'contain',
         'Hello, Plugin!',
