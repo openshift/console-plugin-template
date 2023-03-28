@@ -1,8 +1,7 @@
 # OpenShift Console Plugin Template
 
 This project is a minimal template for writing a new OpenShift Console dynamic
-plugin. It requires OpenShift 4.11. For an example of a plugin that works with
-OpenShift 4.10, see the `release-4.10` branch.
+plugin.
 
 [Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
 allow you to extend the
@@ -11,6 +10,12 @@ at runtime, adding custom pages and other extensions. They are based on
 [webpack module federation](https://webpack.js.org/concepts/module-federation/).
 Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
+
+Using the latest `v1` API version of `ConsolePlugin` CRD, requires OpenShift 4.12
+and higher. For using old `v1alpha1` API version us OpenShift version 4.10 or 4.11.
+
+For an example of a plugin that works with OpenShift 4.11, see the `release-4.11` branch.
+For a plugin that works with OpenShift 4.10, see the `release-4.10` branch.
 
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
 to build and run the example. To run OpenShift console in a container, either
