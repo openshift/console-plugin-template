@@ -1,6 +1,5 @@
 extends:
   - stylelint-config-standard
-  - stylelint-config-prettier
 rules:
   # Disallow color names and hex colors as these don't work well with dark mode.
   # Use PF global variables instead:
