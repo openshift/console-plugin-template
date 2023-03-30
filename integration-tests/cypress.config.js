@@ -22,6 +22,5 @@ module.exports = defineConfig({
     },
     specPattern: 'tests/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'support/index.ts',
-    baseUrl: 'http://localhost:9000/',
   },
 });
