@@ -1,6 +1,3 @@
-import { submitButton } from '../views/form';
-import { masthead } from '../views/masthead';
-
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -11,11 +8,12 @@ declare global {
 }
 
 const KUBEADMIN_USERNAME = 'kubeadmin';
-
-// any command added below, must be added to global Cypress interface above
+const loginUsername = Cypress.env('BRIDGE_KUBEADMIN_PASSWORD')
+  ? 'user-dropdown'
+  : 'username';
 
 // This will add 'cy.login(...)'
-// ex: cy.login('my-idp', 'my-user', 'my-password')
+// ex: cy.login('my-user', 'my-password')
 Cypress.Commands.add('login', (username: string, password: string) => {
   // Check if auth is disabled (for a local development environment).
   cy.visit('/'); // visits baseUrl which is set in plugins/index.js
@@ -31,8 +29,9 @@ Cypress.Commands.add('login', (username: string, password: string) => {
     cy.get('#inputPassword').type(
       password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'),
     );
-    cy.get(submitButton).click();
-    masthead.username.shouldBeVisible();
+    cy.get('button[type=submit]').click();
+
+    cy.get(`[data-test="${loginUsername}"]`).should('be.visible');
   });
 });
 
