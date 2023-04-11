@@ -11,7 +11,7 @@ const installHelmChart = (path: string) => {
     {
       failOnNonZeroExit: false,
     },
-  ).then((result: any) => {
+  ).then((result) => {
     cy.visit(`/example`);
     cy.log('Error installing helm chart: ', result.stderr);
     cy.log('Successfully installed helm chart: ', result.stdout);
@@ -24,7 +24,7 @@ const deleteHelmChart = (path: string) => {
     {
       failOnNonZeroExit: false,
     },
-  ).then((result: any) => {
+  ).then((result) => {
     cy.log('Error uninstalling helm chart: ', result.stderr);
     cy.log('Successfully uninstalled helm chart: ', result.stdout);
   });
