@@ -19,7 +19,7 @@ const KUBEADMIN_USERNAME = 'kubeadmin';
 Cypress.Commands.add('login', (username: string, password: string) => {
   // Check if auth is disabled (for a local development environment).
   cy.visit('/'); // visits baseUrl which is set in plugins/index.js
-  cy.window().then((win: any) => {
+  cy.window().then((win) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       return;
     }
@@ -38,7 +38,7 @@ Cypress.Commands.add('login', (username: string, password: string) => {
 
 Cypress.Commands.add('logout', () => {
   // Check if auth is disabled (for a local development environment).
-  cy.window().then((win: any) => {
+  cy.window().then((win) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       return;
     }
