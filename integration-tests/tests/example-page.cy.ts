@@ -32,7 +32,7 @@ const deleteHelmChart = (path: string) => {
 };
 
 // Adding this to further debug the failing test issues in CI
-describe('My First Test without installing hel chart', () => {
+describe('My First Test without installing helm chart', () => {
   it('Does not do much! Should pass', () => {
     expect(true).to.equal(true);
   });
