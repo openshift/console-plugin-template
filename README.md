@@ -168,6 +168,14 @@ best practice is to prefix your CSS classnames with your plugin name to avoid
 conflicts. Please don't disable these rules without understanding how they can
 break console styles!
 
+## Reporting
+
+Steps to generate reports
+
+1. In command prompt, navigate to root folder and execute the command `yarn run cypress-merge`
+2. Then execute command `yarn run cypress-generate`
+The cypress-report.html file is generated and should be in (/integration-tests/screenshots) directory
+
 ## References
 
 - [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)

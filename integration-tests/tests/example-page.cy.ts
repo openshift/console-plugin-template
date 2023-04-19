@@ -10,7 +10,6 @@ const installHelmChart = (path: string) => {
     `cd ../../console-plugin-template && ${path} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
     {
       failOnNonZeroExit: false,
-      timeout: 300000,
     },
   ).then((result) => {
     cy.visit(`/example`);

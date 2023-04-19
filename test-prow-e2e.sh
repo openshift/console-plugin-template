@@ -13,8 +13,9 @@ function copyArtifacts {
   fi
 }
 
-
 trap copyArtifacts EXIT
+
+trap "yarn run cypress-postreport" EXIT
 
 # don't log kubeadmin-password
 set +x
