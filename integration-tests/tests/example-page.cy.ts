@@ -10,6 +10,7 @@ const installHelmChart = (path: string) => {
     `cd ../../console-plugin-template && ${path} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
     {
       failOnNonZeroExit: false,
+      timeout: 300000,
     },
   ).then((result) => {
     cy.visit(`/example`);
@@ -29,6 +30,16 @@ const deleteHelmChart = (path: string) => {
     cy.log('Successfully uninstalled helm chart: ', result.stdout);
   });
 };
+
+// Adding this to further debug the failing test issues in CI
+describe('My First Test without installing hel chart', () => {
+  it('Does not do much! Should pass', () => {
+    expect(true).to.equal(true);
+  });
+  it('Does not do much! Should fail', () => {
+    expect(true).to.equal(false);
+  });
+});
 
 if (!Cypress.env('OPENSHIFT_CI') || Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC')) {
   describe('Console plugin template test', () => {
@@ -70,6 +81,9 @@ if (!Cypress.env('OPENSHIFT_CI') || Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC')) {
       }
     });
 
+    it('Does not do much! Should pass', () => {
+      expect(true).to.equal(true);
+    });
     it('Verify the example page title', () => {
       cy.get('[data-quickstart-id="qs-nav-home"]').click();
       cy.get('[data-test="nav"]').contains('Plugin Example').click();
@@ -78,6 +92,9 @@ if (!Cypress.env('OPENSHIFT_CI') || Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC')) {
         'contain',
         'Hello, Plugin!',
       );
+    });
+    it('Does not do much! Should fail', () => {
+      expect(true).to.equal(false);
     });
   });
 }
