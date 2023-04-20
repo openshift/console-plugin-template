@@ -14,7 +14,10 @@
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'",
     "lint": "eslint ./src ./integration-tests --fix &&  stylelint \"src/**/*.css\" --allow-empty-input --fix",
     "test-cypress": "cd integration-tests s && cypress open --env openshift=true",
-    "test-cypress-headless": "cd integration-tests && node --max-old-space-size=4096 ../node_modules/.bin/cypress run --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=chrome}"
+    "test-cypress-headless": "cd integration-tests && node --max-old-space-size=4096 ../node_modules/.bin/cypress run --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=chrome}",
+    "cypress-merge": "mochawesome-merge ./integration-tests/screenshots/cypress_report*.json > ./integration-tests/screenshots/cypress.json",
+    "cypress-generate": "marge -o ./integration-tests/screenshots/ -f cypress-report -t 'OpenShift Console Plugin Template Cypress Test Results' -p 'OpenShift Cypress Plugin Template Test Results' --showPassed false --assetsDir ./integration-tests/screenshots/cypress/assets ./integration-tests/screenshots/cypress.json",
+    "cypress-postreport": "yarn cypress-merge && yarn cypress-generate"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.15.5",
@@ -37,6 +40,7 @@
     "eslint-plugin-react": "^7.29.1",
     "mocha-junit-reporter": "^2.2.0",
     "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.3.0",
     "prettier": "^2.7.1",
     "prettier-stylelint": "^0.4.2",
     "react": "^17.0.1",
