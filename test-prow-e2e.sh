@@ -8,14 +8,17 @@ INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR}/installer}
 
 function copyArtifacts {
   if [ -d "$ARTIFACT_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
-    echo "Copying artifacts from $(pwd)..."
-    cp -r "$SCREENSHOTS_DIR" "${ARTIFACT_DIR}"
+    if [[ -z "$(ls -A -- "$SCREENSHOTS_DIR")" ]]; then
+      echo "No artifacts were copied."
+    else
+      echo "Copying artifacts from $(pwd)..."
+      cp -r "$SCREENSHOTS_DIR" "${ARTIFACT_DIR}/screenshots"
+    fi
   fi
 }
 
 trap copyArtifacts EXIT
 
-trap "yarn run cypress-postreport" EXIT
 
 # don't log kubeadmin-password
 set +x
