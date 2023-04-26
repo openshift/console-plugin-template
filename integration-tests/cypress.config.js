@@ -5,13 +5,13 @@ module.exports = defineConfig({
   viewportHeight: 1080,
   screenshotsFolder: './screenshots',
   videosFolder: './videos',
-  video: false,
+  video: true,
   reporter: '../../node_modules/cypress-multi-reporters',
   reporterOptions: {
     configFile: 'reporter-config.json',
   },
   fixturesFolder: 'fixtures',
-  defaultCommandTimeout: 300000,
+  defaultCommandTimeout: 30000,
   retries: {
     runMode: 1,
     openMode: 0,

@@ -11,13 +11,16 @@ const installHelmChart = (path: string) => {
     {
       failOnNonZeroExit: false,
     },
-  ).then((result) => {
-    cy.visit(`/dashboards`);
-    cy.log('Error installing helm chart: ', result.stderr);
-    cy.log('Successfully installed helm chart: ', result.stdout);
-  });
+  )
+    .get('[data-test="refresh-web-console"]', { timeout: 300000 })
+    .should('exist')
+    .then((result) => {
+      cy.reload();
+      cy.visit(`/dashboards`);
+      cy.log('Error installing helm chart: ', result.stderr);
+      cy.log('Successfully installed helm chart: ', result.stdout);
+    });
 };
-
 const deleteHelmChart = (path: string) => {
   cy.exec(
     `cd ../../console-plugin-template && ${path} uninstall ${PLUGIN_TEMPLATE_NAME} -n ${PLUGIN_TEMPLATE_NAME} && oc delete namespaces ${PLUGIN_TEMPLATE_NAME}`,
