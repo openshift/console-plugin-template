@@ -50,6 +50,8 @@ file and the React component is declared in
 You can run the plugin using a local development environment or build an image
 to deploy it to a cluster.
 
+TEST
+
 ## Development
 
 ### Option 1: Local
