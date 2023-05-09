@@ -2,8 +2,7 @@ import { checkErrors } from '../support';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
-export const isLocalDevEnvironment =
-  Cypress.config('baseUrl').includes('localhost');
+const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
 
 const installHelmChart = (path: string) => {
   cy.exec(
@@ -11,15 +10,17 @@ const installHelmChart = (path: string) => {
     {
       failOnNonZeroExit: false,
     },
-  )
-    .get('[data-test="refresh-web-console"]', { timeout: 300000 })
-    .should('exist')
-    .then((result) => {
+  ).then((result) => {
+    if (!isLocalDevEnvironment) {
+      cy.get('[data-test="refresh-web-console"]', { timeout: 300000 }).should(
+        'exist',
+      );
       cy.reload();
-      cy.visit(`/dashboards`);
-      cy.log('Error installing helm chart: ', result.stderr);
-      cy.log('Successfully installed helm chart: ', result.stdout);
-    });
+    }
+    cy.visit(`/dashboards`);
+    cy.log('Error installing helm chart: ', result.stderr);
+    cy.log('Successfully installed helm chart: ', result.stdout);
+  });
 };
 const deleteHelmChart = (path: string) => {
   cy.exec(
