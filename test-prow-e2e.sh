@@ -12,7 +12,7 @@ function copyArtifacts {
   oc get deployments -n ${NS} -o yaml >> ${ARTIFACT_DIR}/deployment_details.yaml
   oc get console.v1.operator.openshift.io cluster -o yaml >> ${ARTIFACT_DIR}/cluster.yaml
 
- for pod in `oc get pods -n ${NS} --no-headers -o custom-columns=":metadata.name"; do
+  for pod in `oc get pods -n ${NS} --no-headers -o custom-columns=":metadata.name"; do
         echo $pod 
         oc logs $pod -n ${NS} > ${ARTIFACT_DIR}/${pod}.logs
   done
