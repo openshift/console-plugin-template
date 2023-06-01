@@ -112,7 +112,7 @@ push it to an image registry.
 1. Build the image:
 
    ```sh
-   docker build -t quay.io/my-repositroy/my-plugin:latest .
+   docker build -t quay.io/my-repository/my-plugin:latest .
    ```
 
 2. Run the image:
