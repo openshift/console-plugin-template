@@ -43,8 +43,11 @@ if [ ! -d node_modules ]; then
   yarn install
 fi
 
-echo "test"
-ls -la /tmp/helm
+echo "Install Helm"
+./install_helm.sh
+
+echo "ENV"
+env
 
 echo "Runs Cypress tests in headless mode"
 yarn run test-cypress-headless
