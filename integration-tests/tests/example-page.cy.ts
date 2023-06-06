@@ -22,17 +22,17 @@ const installHelmChart = (path: string) => {
     cy.log('Successfully installed helm chart: ', result.stdout);
   });
 };
-const deleteHelmChart = (path: string) => {
-  cy.exec(
-    `cd ../../console-plugin-template && ${path} uninstall ${PLUGIN_TEMPLATE_NAME} -n ${PLUGIN_TEMPLATE_NAME} && oc delete namespaces ${PLUGIN_TEMPLATE_NAME}`,
-    {
-      failOnNonZeroExit: false,
-    },
-  ).then((result) => {
-    cy.log('Error uninstalling helm chart: ', result.stderr);
-    cy.log('Successfully uninstalled helm chart: ', result.stdout);
-  });
-};
+// const deleteHelmChart = (path: string) => {
+//   cy.exec(
+//     `cd ../../console-plugin-template && ${path} uninstall ${PLUGIN_TEMPLATE_NAME} -n ${PLUGIN_TEMPLATE_NAME} && oc delete namespaces ${PLUGIN_TEMPLATE_NAME}`,
+//     {
+//       failOnNonZeroExit: false,
+//     },
+//   ).then((result) => {
+//     cy.log('Error uninstalling helm chart: ', result.stderr);
+//     cy.log('Successfully uninstalled helm chart: ', result.stdout);
+//   });
+// };
 
 describe('Console plugin template test', () => {
   before(() => {
@@ -44,12 +44,12 @@ describe('Console plugin template test', () => {
       cy.exec('cd ../../console-plugin-template && ./install_helm.sh', {
         failOnNonZeroExit: false,
       }).then((result) => {
-        cy.log('Error installing helm binary: ', result.stderr);
-        cy.log(
-          'Successfully installed helm binary in "/tmp" directory: ',
-          result.stdout,
-        );
-
+        if (result.stderr) {
+          cy.log('Error installing helm binary: ', result.stderr);
+        }
+        if (result.stdout) {
+          cy.log('Successfully installed helm binary in "/tmp" directory: ', result.stdout)
+        }
         installHelmChart('/tmp/helm');
       });
     } else {
@@ -63,14 +63,15 @@ describe('Console plugin template test', () => {
     checkErrors();
   });
 
-  after(() => {
-    if (!isLocalDevEnvironment) {
-      deleteHelmChart('/tmp/helm');
-    } else {
-      deleteHelmChart('helm');
-    }
-    cy.logout();
-  });
+  // after(() => {
+  //   if (!isLocalDevEnvironment) {
+  //     deleteHelmChart('/tmp/helm');
+  //   } else {
+  //     deleteHelmChart('helm');
+  //   }
+  //   cy.logout();
+  // }
+  // );
 
   it('Verify the example page title', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
