@@ -11,6 +11,8 @@ const installHelmChart = (path: string) => {
       failOnNonZeroExit: false,
     },
   ).then((result) => {
+    cy.log('Error installing helm chart: ', result.stderr);
+    cy.log('Successfully installed helm chart: ', result.stdout);
     if (!isLocalDevEnvironment) {
       cy.get('[data-test="refresh-web-console"]', { timeout: 300000 }).should(
         'exist',
@@ -18,8 +20,6 @@ const installHelmChart = (path: string) => {
       cy.reload();
     }
     cy.visit(`/dashboards`);
-    cy.log('Error installing helm chart: ', result.stderr);
-    cy.log('Successfully installed helm chart: ', result.stdout);
   });
 };
 // const deleteHelmChart = (path: string) => {
@@ -39,7 +39,7 @@ describe('Console plugin template test', () => {
     cy.login();
 
     if (!isLocalDevEnvironment) {
-      console.log('this is not a local env, installig helm');
+      cy.log('this is not a local env, installig helm');
 
       cy.exec('cd ../../console-plugin-template && ./install_helm.sh', {
         failOnNonZeroExit: false,
@@ -53,7 +53,7 @@ describe('Console plugin template test', () => {
         installHelmChart('/tmp/helm');
       });
     } else {
-      console.log('this is a local env, not installing helm');
+      cy.log('this is a local env, not installing helm');
 
       installHelmChart('helm');
     }
