@@ -71,7 +71,7 @@ describe('Console plugin template test', () => {
     cy.logout();
   });
 
-  it('Verify the example page title', () => {
+  it('Verify the example page title test', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
     cy.get('[data-test="nav"]').contains('Plugin Example').click();
     cy.url().should('include', '/example');
