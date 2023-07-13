@@ -22,7 +22,7 @@ export default function ExamplePage() {
         <PageSection variant="light">
           <TextContent>
             <Text component="p">
-              <span className="console-plugin-template__nice">Nice!</span> Your
+              <span className="console-plugin-template__nice">Great!</span> Your
               plugin is working.
             </Text>
             <Text component="p">
