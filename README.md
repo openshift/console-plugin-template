@@ -1,5 +1,5 @@
 # OpenShift Console Plugin Template
-
+test
 This project is a minimal template for writing a new OpenShift Console dynamic
 plugin.
 
