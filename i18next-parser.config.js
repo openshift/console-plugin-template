@@ -3,14 +3,13 @@ const { CustomJSONLexer } = require('./i18n-scripts/lexers');
 
 // eslint-disable-next-line no-undef
 module.exports = {
-  input: ['src/**/*.{js,jsx,ts,tsx}'],
   sort: true,
   createOldCatalogs: false,
   keySeparator: false,
   locales: ['en'],
   namespaceSeparator: '~',
   reactNamespace: false,
-  defaultNamespace: 'plugin__crontab-plugin',
+  defaultNamespace: 'plugin__console-plugin-template',
   useKeysAsDefaultValue: true,
 
   // see below for more details
