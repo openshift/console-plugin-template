@@ -10,7 +10,6 @@ import {
 import './example.css';
 import { useTranslation } from 'react-i18next';
 
-
 export default function ExamplePage() {
   const { t } = useTranslation('plugin__console-plugin-template');
 
