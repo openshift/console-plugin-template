@@ -151,7 +151,7 @@ helm upgrade -i  my-plugin charts/openshift-console-plugin -n plugin__console-pl
 
 NOTE: When deploying on OpenShift 4.10, it is recommended to add the parameter `--set plugin.securityContext.enabled=false` which will omit configurations related to Pod Security.
 
-NOTE: Please adhere to the specified namespace format `plugin__<name-of-the-plugin>` when defining namespaces. The name of the plugin should be extracted from the `consolePlugin` declaration within the [package.json](package.json) file.
+NOTE: When defining i18n namespace, adhere `plugin__<name-of-the-plugin>` format. The name of the plugin should be extracted from the `consolePlugin` declaration within the [package.json](package.json) file.
 
 ## i18n
 
