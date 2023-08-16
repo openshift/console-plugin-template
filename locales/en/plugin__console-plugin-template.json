@@ -1,0 +1,12 @@
+{
+  "After cloning this project, replace references to": "After cloning this project, replace references to",
+  "and other plugin metadata in package.json with values for your plugin.": "and other plugin metadata in package.json with values for your plugin.",
+  "console-template-plugin": "console-template-plugin",
+  "exposedModules": "exposedModules",
+  "Hello, Plugin!": "Hello, Plugin!",
+  "in package.json mapping the reference to the module.": "in package.json mapping the reference to the module.",
+  "Nice!": "Nice!",
+  "Plugin Example": "Plugin Example",
+  "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresonding property": "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresonding property",
+  "Your plugin is working.": "Your plugin is working."
+}

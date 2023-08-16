@@ -5,6 +5,8 @@ import { Configuration as WebpackDevServerConfiguration } from "webpack-dev-serv
 import * as path from "path";
 import { ConsoleRemotePlugin } from "@openshift-console/dynamic-plugin-sdk-webpack";
 
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
 }
@@ -69,7 +71,12 @@ const config: Configuration = {
       writeToDisk: true,
     },
   },
-  plugins: [new ConsoleRemotePlugin()],
+  plugins: [
+    new ConsoleRemotePlugin(), 
+    new CopyWebpackPlugin({
+      patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+    }),
+  ],
   devtool: "source-map",
   optimization: {
     chunkIds: "named",
@@ -79,10 +86,14 @@ const config: Configuration = {
 
 if (process.env.NODE_ENV === "production") {
   config.mode = "production";
-  config.output.filename = "[name]-bundle-[hash].min.js";
-  config.output.chunkFilename = "[name]-chunk-[chunkhash].min.js";
-  config.optimization.chunkIds = "deterministic";
-  config.optimization.minimize = true;
+  if (config.output) {
+    config.output.filename = '[name]-bundle-[hash].min.js';
+    config.output.chunkFilename = '[name]-chunk-[chunkhash].min.js';
+  }
+  if (config.optimization) {
+    config.optimization.chunkIds = 'deterministic';
+    config.optimization.minimize = true;
+  }
   config.devtool = false;
 }
 
