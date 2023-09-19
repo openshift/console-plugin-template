@@ -16,6 +16,7 @@ data:
       keepalive_timeout  65;
       server {
         listen              {{ .Values.plugin.port }} ssl;
+        listen              [::]:{{ .Values.plugin.port }} ssl;
         ssl_certificate     /var/cert/tls.crt;
         ssl_certificate_key /var/cert/tls.key;
         root                /usr/share/nginx/html;
