@@ -44,5 +44,5 @@ if [ -x "$(command -v podman)" ]; then
     fi
 else
     BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:9001"
-    docker run --pull always --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
+    docker run --network=host --pull always --rm -p "$CONSOLE_PORT":9000 --env-file <(set | grep BRIDGE) $CONSOLE_IMAGE
 fi
