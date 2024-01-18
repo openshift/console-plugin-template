@@ -32,7 +32,7 @@ export default function ExamplePage() {
             </Text>
             <Text component="p">
               {t(
-                'This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresonding property',
+                'This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresponding property',
               )}
               <code>{t('exposedModules')}</code>{' '}
               {t('in package.json mapping the reference to the module.')}
