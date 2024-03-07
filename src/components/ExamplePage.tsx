@@ -7,6 +7,7 @@ import {
   TextContent,
   Title,
 } from '@patternfly/react-core';
+import { CheckCircleIcon } from '@patternfly/react-icons';
 import './example.css';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +27,7 @@ export default function ExamplePage() {
           <TextContent>
             <Text component="p">
               <span className="console-plugin-template__nice">
-                {t('Nice!')}
+                <CheckCircleIcon /> {t('Success!')}
               </span>{' '}
               {t('Your plugin is working.')}
             </Text>
