@@ -8,9 +8,7 @@ declare global {
 }
 
 const KUBEADMIN_USERNAME = 'kubeadmin';
-const loginUsername = Cypress.env('BRIDGE_KUBEADMIN_PASSWORD')
-  ? 'user-dropdown'
-  : 'username';
+const loginUsername = Cypress.env('BRIDGE_KUBEADMIN_PASSWORD') ? 'user-dropdown' : 'username';
 
 // This will add 'cy.login(...)'
 // ex: cy.login('my-user', 'my-password')
@@ -26,9 +24,7 @@ Cypress.Commands.add('login', (username: string, password: string) => {
     cy.clearCookie('openshift-session-token');
 
     cy.get('#inputUsername').type(username || KUBEADMIN_USERNAME);
-    cy.get('#inputPassword').type(
-      password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'),
-    );
+    cy.get('#inputPassword').type(password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'));
     cy.get('button[type=submit]').click();
 
     cy.get(`[data-test="${loginUsername}"]`).should('be.visible');

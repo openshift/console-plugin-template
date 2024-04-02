@@ -2,8 +2,7 @@ import { checkErrors } from '../support';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
-export const isLocalDevEnvironment =
-  Cypress.config('baseUrl').includes('localhost');
+export const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
 
 const installHelmChart = (path: string) => {
   cy.exec(
@@ -44,10 +43,7 @@ describe('Console plugin template test', () => {
         failOnNonZeroExit: false,
       }).then((result) => {
         cy.log('Error installing helm binary: ', result.stderr);
-        cy.log(
-          'Successfully installed helm binary in "/tmp" directory: ',
-          result.stdout,
-        );
+        cy.log('Successfully installed helm binary in "/tmp" directory: ', result.stdout);
 
         installHelmChart('/tmp/helm');
       });
@@ -75,9 +71,6 @@ describe('Console plugin template test', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
     cy.get('[data-test="nav"]').contains('Plugin Example').click();
     cy.url().should('include', '/example');
-    cy.get('[data-test="example-page-title"]').should(
-      'contain',
-      'Hello, Plugin!',
-    );
+    cy.get('[data-test="example-page-title"]').should('contain', 'Hello, Plugin!');
   });
 });

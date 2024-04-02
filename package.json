@@ -1,28 +1,32 @@
 {
   "name": "console-plugin-template",
   "version": "0.0.1",
+  "description": "Template project for OpenShift Console dynamic plugins",
   "private": true,
-  "repository": "git@github.com:spadgett/console-plugin-template.git",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openshift/console-plugin-template.git"
+  },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && NODE_ENV=production yarn ts-node node_modules/.bin/webpack",
-    "build-dev": "yarn clean && yarn ts-node node_modules/.bin/webpack",
-    "start": "yarn ts-node node_modules/.bin/webpack serve",
+    "build": "yarn clean && NODE_ENV=production yarn webpack",
+    "build-dev": "yarn clean && yarn webpack",
+    "start": "yarn webpack serve --progress",
     "start-console": "./start-console.sh",
     "i18n": "./i18n-scripts/build-i18n.sh && node ./i18n-scripts/set-english-defaults.js",
-    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'",
-    "lint": "eslint ./src ./integration-tests --fix &&  stylelint \"src/**/*.css\" --allow-empty-input --fix",
-    "test-cypress": "cd integration-tests s && cypress open --env openshift=true",
+    "lint": "yarn eslint src integration-tests --fix && stylelint 'src/**/*.css' --allow-empty-input --fix",
+    "test-cypress": "cd integration-tests && cypress open --env openshift=true",
     "test-cypress-headless": "cd integration-tests && node --max-old-space-size=4096 ../node_modules/.bin/cypress run --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=electron}",
     "cypress-merge": "mochawesome-merge ./integration-tests/screenshots/cypress_report*.json > ./integration-tests/screenshots/cypress.json",
     "cypress-generate": "marge -o ./integration-tests/screenshots/ -f cypress-report -t 'OpenShift Console Plugin Template Cypress Test Results' -p 'OpenShift Cypress Plugin Template Test Results' --showPassed false --assetsDir ./integration-tests/screenshots/cypress/assets ./integration-tests/screenshots/cypress.json",
-    "cypress-postreport": "yarn cypress-merge && yarn cypress-generate"
+    "cypress-postreport": "yarn cypress-merge && yarn cypress-generate",
+    "webpack": "node -r ts-node/register ./node_modules/.bin/webpack"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.15.5",
-    "@openshift-console/dynamic-plugin-sdk": "^1.0.0",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "^1.0.0",
+    "@openshift-console/dynamic-plugin-sdk": "1.2.0",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "1.1.0",
     "@patternfly/react-core": "^5.1.1",
     "@patternfly/react-icons": "^5.1.1",
     "@patternfly/react-styles": "^5.1.1",
@@ -68,7 +72,7 @@
     "name": "console-plugin-template",
     "version": "0.0.1",
     "displayName": "OpenShift Console Plugin Template",
-    "description": "Template project for OpenShift console plugins. Edit package.json to change this message and the plugin name.",
+    "description": "Template project for OpenShift Console dynamic plugins. Edit package.json to change this message and the plugin name.",
     "exposedModules": {
       "ExamplePage": "./components/ExamplePage"
     },
