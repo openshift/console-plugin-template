@@ -1,7 +1,7 @@
 {
   "name": "console-plugin-template",
   "version": "0.0.1",
-  "description": "Template project for OpenShift Console dynamic plugins",
+  "description": "Template project for OpenShift Console plugins",
   "private": true,
   "license": "Apache-2.0",
   "repository": {
@@ -72,7 +72,7 @@
     "name": "console-plugin-template",
     "version": "0.0.1",
     "displayName": "OpenShift Console Plugin Template",
-    "description": "Template project for OpenShift Console dynamic plugins. Edit package.json to change this message and the plugin name.",
+    "description": "Template project for OpenShift Console plugins. Edit package.json to change this message and the plugin name.",
     "exposedModules": {
       "ExamplePage": "./components/ExamplePage"
     },
