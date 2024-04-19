@@ -19,9 +19,7 @@ module.exports = (on, config) => {
   };
   on('file:preprocessor', wp(options));
   // `config` is the resolved Cypress config
-  config.baseUrl = `${
-    process.env.BRIDGE_BASE_ADDRESS || 'http://localhost:9000/'
-  }`;
+  config.baseUrl = `${process.env.BRIDGE_BASE_ADDRESS || 'http://localhost:9000/'}`;
   config.env.BRIDGE_KUBEADMIN_PASSWORD = process.env.BRIDGE_KUBEADMIN_PASSWORD;
   return config;
 };

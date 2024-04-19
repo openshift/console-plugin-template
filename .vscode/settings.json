@@ -1,7 +1,17 @@
 {
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true
+  },
+  "files.associations": {
+    "**/console-extensions.json": "jsonc"
+  },
   "json.schemas": [
     {
-      "fileMatch": ["console-extensions.json", "**/console-extensions.json"],
+      "fileMatch": ["**/console-extensions.json"],
       "url": "./node_modules/@openshift-console/dynamic-plugin-sdk-webpack/schema/console-extensions.json"
     }
   ]

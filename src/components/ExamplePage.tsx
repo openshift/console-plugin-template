@@ -1,15 +1,9 @@
 import * as React from 'react';
 import Helmet from 'react-helmet';
-import {
-  Page,
-  PageSection,
-  Text,
-  TextContent,
-  Title,
-} from '@patternfly/react-core';
+import { useTranslation } from 'react-i18next';
+import { Page, PageSection, Text, TextContent, Title } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
 import './example.css';
-import { useTranslation } from 'react-i18next';
 
 export default function ExamplePage() {
   const { t } = useTranslation('plugin__console-plugin-template');
@@ -41,9 +35,7 @@ export default function ExamplePage() {
             <Text component="p">
               {t('After cloning this project, replace references to')}{' '}
               <code>{t('console-template-plugin')}</code>{' '}
-              {t(
-                'and other plugin metadata in package.json with values for your plugin.',
-              )}
+              {t('and other plugin metadata in package.json with values for your plugin.')}
             </Text>
           </TextContent>
         </PageSection>
