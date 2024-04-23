@@ -16,5 +16,11 @@
       "perspective": "admin",
       "section": "home"
     }
+  },
+    {
+    "type": "console.create-project-modal",
+    "properties": {
+      "component": { "$codeRef": "CreateProjectModal" }
+    }
   }
 ]

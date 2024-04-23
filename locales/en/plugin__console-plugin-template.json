@@ -1,5 +1,6 @@
 {
   "After cloning this project, replace references to": "After cloning this project, replace references to",
+  "An error occurred.": "An error occurred.",
   "and other plugin metadata in package.json with values for your plugin.": "and other plugin metadata in package.json with values for your plugin.",
   "console-template-plugin": "console-template-plugin",
   "exposedModules": "exposedModules",
