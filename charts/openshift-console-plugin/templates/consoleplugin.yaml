@@ -2,7 +2,6 @@ apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
   name: {{ template "openshift-console-plugin.name" . }}
-  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openshift-console-plugin.labels" . | nindent 4 }}
 spec:
