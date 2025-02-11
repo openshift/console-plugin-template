@@ -25,11 +25,11 @@ to build and run the example. To run OpenShift console in a container, either
 ## Getting started
 
 > [!IMPORTANT]  
-> To use this template, **DO NOT FORK THIS REPOSITORY**! Click **Use ths template**, then select [**Create a new repository**](https://github.com/new?template_name=networking-console-plugin&template_owner=openshift) to create a new repository.
+> To use this template, **DO NOT FORK THIS REPOSITORY**! Click **Use this template**, then select [**Create a new repository**](https://github.com/new?template_name=networking-console-plugin&template_owner=openshift) to create a new repository.
 >
 > ![A screenshot showing where the "Use this template" button is located](https://i.imgur.com/AhaySbU.png)
 >
-> **Forking this repository** for purposes outside of contributing to this repo **will cause issues**, as users cannot have more than one fork of a template repository at a time. This could prevent future users from forking and contributing to your plugin.
+> **Forking this repository** for purposes outside of contributing to this repo **will cause issues**, as users cannot have more than one fork of a template repository at a time. This could prevent future users from forking and contributing to your plugin. Your fork would also cause behave like a template repository. This may be confusing as it is not possible for repositories generated from a template to contribute back to the template.
 
 After cloning your instantiated repo, you should update the plugin metadata such as the
 plugin name in the `consolePlugin` declaration of [package.json](package.json).
