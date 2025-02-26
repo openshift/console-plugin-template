@@ -11,11 +11,11 @@ at runtime, adding custom pages and other extensions. They are based on
 Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
 
-Using the latest `v1` API version of `ConsolePlugin` CRD, requires OpenShift 4.12
-and higher. For using old `v1alpha1` API version us OpenShift version 4.10 or 4.11.
-
-For an example of a plugin that works with OpenShift 4.11, see the `release-4.11` branch.
-For a plugin that works with OpenShift 4.10, see the `release-4.10` branch.
+This repository contains branches for older OpenShift releases. If you're
+writing a plugin that should be backwards compatible with older release, you
+should base your plugin on those branches. The branch names follow pattern
+`release-*`. For example, `release-4.18` corresponds to the OpenShift 4.18
+release.
 
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
 to build and run the example. To run OpenShift console in a container, either
@@ -214,6 +214,21 @@ The cypress-report.html file is generated and should be in (/integration-tests/s
 
 ## References
 
-- [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
-- [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
-- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
+To learn more, have a look at the SDK documentation, a few sample plugins, and
+the source code for some real plugins!
+
+### Documentation
+
+- [Plugin Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/web_console/dynamic-plugins#getting-started-with-dynamic-plugins_overview-of-dynamic-plugins)
+- [Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
+
+### Sample Plugins
+
+- [CronTab Sample Plugin](https://github.com/openshift/console-crontab-plugin)
+- [Dynamic Demo Plugin](https://github.com/openshift/console/tree/main/dynamic-demo-plugin)
+
+### Real Plugins
+
+- [OpenShift Monitoring Plugin](https://github.com/openshift/monitoring-plugin)
+- [OpenShift Lightspeed Plugin](https://github.com/openshift/lightspeed-console)
+- [OpenShift Kubevirt Plugin](https://github.com/kubevirt-ui/kubevirt-plugin)
