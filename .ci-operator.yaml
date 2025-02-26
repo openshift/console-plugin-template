@@ -1,4 +1,4 @@
 build_root_image:
-  name: nodejs-16
+  name: nodejs-18
   namespace: openshift
   tag: latest
