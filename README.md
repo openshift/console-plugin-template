@@ -220,7 +220,7 @@ the source code for some real plugins!
 ### Documentation
 
 - [Plugin Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/web_console/dynamic-plugins#getting-started-with-dynamic-plugins_overview-of-dynamic-plugins)
-- [Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
+- [Plugin SDK README](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk)
 
 ### Sample Plugins
 
