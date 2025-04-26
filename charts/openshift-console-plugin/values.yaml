@@ -4,6 +4,7 @@ plugin:
   description: ""
   image: ""
   imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
   replicas: 2
   port: 9443
   securityContext:
