@@ -1,18 +1,26 @@
 extends:
   - stylelint-config-standard
 rules:
-  # Disallow color names and hex colors as these don't work well with dark mode.
-  # Use PF global variables instead:
-  # https://patternfly-react-main.surge.sh/developer-resources/global-css-variables#global-css-variables
+  # Disallow custom colors as these don't work well with dark mode.
+  # Use PF semantic tokens instead:
+  # https://www.patternfly.org/tokens/all-patternfly-tokens
   color-named: never
   color-no-hex: true
-  # PatternFly CSS vars don't conform to stylelint's regex. Disable this rule.
-  custom-property-pattern: null
   function-disallowed-list:
     - rgb
-  # Disable the standard rule to allow BEM-style classnames with underscores.
+    - rgba
+    - hsl
+    - hsla
+    - oklch
+    - oklch
+    - hwb
+    - lab
+    - lch
+  # PatternFly CSS vars don't conform to stylelint's regex. Disable this rule.
+  custom-property-pattern: null
+  # Disable the standard rule to allow BEM-style class names with underscores.
   selector-class-pattern: null
-  # Disallow CSS classnames prefixed with .pf- or .co- as these prefixes are
+  # Disallow CSS class names prefixed with .pf- or .co- as these prefixes are
   # reserved by PatternFly and OpenShift console.
   selector-disallowed-list:
     - "*"
