@@ -2,7 +2,9 @@ import { checkErrors } from '../support';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
-export const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
+// We know that the baseUrl is always set because it's in the cypress config
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const isLocalDevEnvironment = Cypress.config('baseUrl')!.includes('localhost');
 
 export const guidedTour = {
   close: () => {
