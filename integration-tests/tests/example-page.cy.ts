@@ -87,8 +87,8 @@ describe('Console plugin template test', () => {
 
   it('Verify the example page title', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
-    cy.get('[data-test="nav"]').contains('Plugin Example').click();
+    cy.get('[data-test="nav"]').contains('Plugin example').click();
     cy.url().should('include', '/example');
-    cy.get('title').should('contain', 'Hello, Plugin!');
+    cy.get('title').should('contain', 'Hello, plugin!');
   });
 });
