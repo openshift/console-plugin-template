@@ -10,7 +10,7 @@ parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaFeatures:
     jsx: true
-  ecmaVersion: 2016
+  ecmaVersion: 2021
   sourceType: module
 plugins:
   - prettier
@@ -19,6 +19,8 @@ plugins:
 rules:
   prettier/prettier:
     - error
+  react/react-in-jsx-scope: # Not required with React 17+
+    - off
 settings:
   react:
     version: detect

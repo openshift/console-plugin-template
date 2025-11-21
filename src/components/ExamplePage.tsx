@@ -1,7 +1,6 @@
-import * as React from 'react';
-import Helmet from 'react-helmet';
+import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { Content, PageSection, Title } from '@patternfly/react-core';
+import { Content, PageSection } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
 import './example.css';
 
@@ -10,12 +9,8 @@ export default function ExamplePage() {
 
   return (
     <>
-      <Helmet>
-        <title data-test="example-page-title">{t('Hello, Plugin!')}</title>
-      </Helmet>
-      <PageSection>
-        <Title headingLevel="h1">{t('Hello, Plugin!')}</Title>
-      </PageSection>
+      <DocumentTitle>{t('Hello, Plugin!')}</DocumentTitle>
+      <ListPageHeader title={t('Hello, Plugin!')} />
       <PageSection>
         <Content component="p">
           <span className="console-plugin-template__nice">
