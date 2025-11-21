@@ -1,12 +1,8 @@
 {
-  "After cloning this project, replace references to": "After cloning this project, replace references to",
-  "and other plugin metadata in package.json with values for your plugin.": "and other plugin metadata in package.json with values for your plugin.",
-  "console-template-plugin": "console-template-plugin",
-  "exposedModules": "exposedModules",
-  "Hello, Plugin!": "Hello, Plugin!",
-  "in package.json mapping the reference to the module.": "in package.json mapping the reference to the module.",
-  "Plugin Example": "Plugin Example",
+  "After cloning this project, replace references to <1>console-template-plugin</1> and other plugin metadata in package.json with values for your plugin.": "After cloning this project, replace references to <1>console-template-plugin</1> and other plugin metadata in package.json with values for your plugin.",
+  "Hello, plugin!": "Hello, plugin!",
+  "Plugin example": "Plugin example",
   "Success!": "Success!",
-  "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresponding property": "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresponding property",
+  "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresponding property <2>exposedModules</2> in package.json mapping the reference to the module.": "This is a custom page contributed by the console plugin template. The extension that adds the page is declared in console-extensions.json in the project root along with the corresponding nav item. Update console-extensions.json to change or add extensions. Code references in console-extensions.json must have a corresponding property <2>exposedModules</2> in package.json mapping the reference to the module.",
   "Your plugin is working.": "Your plugin is working."
 }
