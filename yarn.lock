@@ -1265,10 +1265,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@openshift-console/dynamic-plugin-sdk-webpack@4.19.0":
-  version "4.19.0"
-  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk-webpack/-/dynamic-plugin-sdk-webpack-4.19.0.tgz#6a0171702d9089f6cbe6cb74665ea855bb42af7e"
-  integrity sha512-a4zxkrEe4qhKir5R21OK/wJVCn8Gzm/y3smLxRDi/BjHFgcnNQKEgCMP4IhvTlT0NRJQ4Q9AmPT1WXBlV3ip3g==
+"@openshift-console/dynamic-plugin-sdk-webpack@4.20.0":
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk-webpack/-/dynamic-plugin-sdk-webpack-4.20.0.tgz#5b42772625bf44fc3faf76ecf94b5223ed3e6644"
+  integrity sha512-cTpBy8Jz2C65Qy/3fXIRv8IehvKRkms8rMcjz0KGo7DRoaDPnSyMXi5gH0BIA01nr5U6sBncNSbaD/3PXaZaig==
   dependencies:
     "@openshift/dynamic-plugin-sdk-webpack" "^4.0.2"
     ajv "^6.12.3"
@@ -1281,13 +1281,12 @@
     semver "6.x"
     webpack "^5.75.0"
 
-"@openshift-console/dynamic-plugin-sdk@4.19.1":
-  version "4.19.1"
-  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-4.19.1.tgz#391416a7b2a3ce1abc3b0cb88a140c7ff3c25003"
-  integrity sha512-4Ond6LRb4nqq03UDio8NHHSC5RHliFK7zaKGb/s86Hf35INdix3F7gayGPfRs3u3Lr9yGCMaT+NaLV79kA7qbg==
+"@openshift-console/dynamic-plugin-sdk@4.20.0":
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-4.20.0.tgz#f5e6aaa147f02f651e3e6a734a1fb55555bad56a"
+  integrity sha512-Rf6XfWweXccmz10UpBT0tJTXBDf6jqRaiwQjzXGJ4W+ewVh5BQwxXIeBwzxjuAr3Bt972MhIqksHrlh54moERA==
   dependencies:
     "@patternfly/react-topology" "^6.2.0"
-    classnames "2.x"
     immutable "3.x"
     lodash "^4.17.21"
     react "^17.0.1"
@@ -3040,11 +3039,6 @@ circular-json@^0.3.1:
   version "0.3.3"
   resolved "https://registry.npmjs.org/circular-json/-/circular-json-0.3.3.tgz"
   integrity sha512-UZK3NBx2Mca+b5LsG7bY183pHWt5Y1xts4P3Pz7ENTwGVnJOUWbRb3ocjvX7hx9tq/yTAdclXm9sZ38gNuem4A==
-
-classnames@2.x:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.5.1.tgz#ba774c614be0f016da105c858e7159eae8e7687b"
-  integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
 
 clean-stack@^2.0.0:
   version "2.2.0"
