@@ -4,38 +4,18 @@ const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
 export const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
 
-export const guidedTour = {
-  close: () => {
-    cy.get('body').then(($body) => {
-      if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
-        cy.get(`[data-test="tour-step-footer-secondary"]`).contains('Skip tour').click();
-      }
-    });
-  },
-  isOpen: () => {
-    cy.get('body').then(($body) => {
-      if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
-        cy.get(`[data-test="guided-tour-modal"]`).should('be.visible');
-      }
-    });
-  },
-};
-
 const installHelmChart = (path: string) => {
   cy.exec(
     `cd ../../console-plugin-template && ${path} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
     {
       failOnNonZeroExit: false,
     },
-  )
-    .get('[data-test="refresh-web-console"]', { timeout: 300000 })
-    .should('exist')
-    .then((result) => {
-      cy.reload();
-      cy.visit(`/dashboards`);
-      cy.log('Error installing helm chart: ', result.stderr);
-      cy.log('Successfully installed helm chart: ', result.stdout);
-    });
+  ).then((result) => {
+    result.stderr && cy.log('Error installing helm chart: ', result.stderr);
+    result.stdout && cy.log('Successfully installed helm chart: ', result.stdout);
+    cy.visit('/k8s/cluster/operator.openshift.io~v1~Console/cluster/console-plugins');
+    cy.get('[data-test="console-plugin-template-status"]').should('include.text', 'loaded');
+  });
 };
 const deleteHelmChart = (path: string) => {
   cy.exec(
@@ -52,8 +32,7 @@ const deleteHelmChart = (path: string) => {
 describe('Console plugin template test', () => {
   before(() => {
     cy.login();
-    guidedTour.isOpen();
-    guidedTour.close();
+    cy.get(`[data-test="tour-step-footer-secondary"]`).contains('Skip tour').click();
     if (!isLocalDevEnvironment) {
       console.log('this is not a local env, installig helm');
 
