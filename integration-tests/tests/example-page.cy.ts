@@ -2,7 +2,9 @@ import { checkErrors } from '../support';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
-export const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
+// We know that the baseUrl is always set because it's in the cypress config
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const isLocalDevEnvironment = Cypress.config('baseUrl')!.includes('localhost');
 
 const installHelmChart = (path: string) => {
   cy.exec(
@@ -66,8 +68,8 @@ describe('Console plugin template test', () => {
 
   it('Verify the example page title', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
-    cy.get('[data-test="nav"]').contains('Plugin Example').click();
+    cy.get('[data-test="nav"]').contains('Plugin example').click();
     cy.url().should('include', '/example');
-    cy.get('[data-test="example-page-title"]').should('contain', 'Hello, Plugin!');
+    cy.get('title').should('contain', 'Hello, plugin!');
   });
 });

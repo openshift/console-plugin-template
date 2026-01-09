@@ -1,6 +1,9 @@
 import * as wp from '@cypress/webpack-preprocessor';
 
-module.exports = (on, config) => {
+module.exports = (
+  on: Cypress.PluginEvents,
+  config: Cypress.PluginConfigOptions,
+): Cypress.PluginConfigOptions => {
   const options = {
     webpackOptions: {
       resolve: {

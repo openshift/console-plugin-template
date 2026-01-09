@@ -1,9 +1,10 @@
 approvers:
   - christianvogt
   - florkbr
-  - spadgett
-  - vojtechszocs
   - jhadvig
-  - TheRealJon
+  - logonoff
   - rhamilto
+  - spadgett
+  - TheRealJon
+  - vojtechszocs
 component: Management Console
