@@ -1,21 +1,18 @@
-# OpenShift Console Plugin Template
+# OpenShift console plugin template
 
 This project is a minimal template for writing a new OpenShift Console dynamic
 plugin.
 
-[Dynamic plugins](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
-allow you to extend the
-[OpenShift UI](https://github.com/openshift/console)
+[Openshift console plugins](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk)
+allow you to extend the [OpenShift web console](https://github.com/openshift/console)
 at runtime, adding custom pages and other extensions. They are based on
 [webpack module federation](https://webpack.js.org/concepts/module-federation/).
 Plugins are registered with console using the `ConsolePlugin` custom resource
 and enabled in the console operator config by a cluster administrator.
 
-Using the latest `v1` API version of `ConsolePlugin` CRD, requires OpenShift 4.12
-and higher. For using old `v1alpha1` API version us OpenShift version 4.10 or 4.11.
-
-For an example of a plugin that works with OpenShift 4.11, see the `release-4.11` branch.
-For a plugin that works with OpenShift 4.10, see the `release-4.10` branch.
+The `main` branch of this repository contains an example plugin which works
+with the latest version. To see an example of a plugin which works with an older
+version, visit the appropriate `release-4.x` branch.
 
 [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com) are required
 to build and run the example. To run OpenShift console in a container, either
@@ -24,9 +21,9 @@ to build and run the example. To run OpenShift console in a container, either
 
 ## Getting started
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > To use this template, **DO NOT FORK THIS REPOSITORY**! Click **Use this template**, then select
-> [**Create a new repository**](https://github.com/new?template_name=networking-console-plugin&template_owner=openshift)
+> [**Create a new repository**](https://github.com/new?template_name=console-plugin-template&template_owner=openshift)
 > to create a new repository.
 >
 > ![A screenshot showing where the "Use this template" button is located](https://i.imgur.com/AhaySbU.png)
@@ -34,7 +31,7 @@ to build and run the example. To run OpenShift console in a container, either
 > **Forking this repository** for purposes outside of contributing to this repository
 > **will cause issues**, as users cannot have more than one fork of a template repository
 > at a time. This could prevent future users from forking and contributing to your plugin.
-> 
+>
 > Your fork would also behave like a template repository, which might be confusing for
 > contributiors, because it is not possible for repositories generated from a template
 > repository to contribute back to the template.
@@ -177,7 +174,7 @@ naming conflicts. For example, the plugin template uses the
 with this namespace as follows:
 
 ```tsx
-conster Header: React.FC = () => {
+const Header: React.FC = () => {
   const { t } = useTranslation('plugin__console-plugin-template');
   return <h1>{t('Hello, World!')}</h1>;
 };
@@ -207,15 +204,14 @@ plugin template when adding or changing messages.
 This project adds prettier, eslint, and stylelint. Linting can be run with
 `yarn run lint`.
 
-The stylelint config disallows hex colors since these cause problems with dark
-mode (starting in OpenShift console 4.11). You should use the
-[PatternFly global CSS variables](https://patternfly-react-main.surge.sh/developer-resources/global-css-variables#global-css-variables)
+The stylelint config disallows defining colors since these cause problems with dark
+mode. Use [PatternFly semantic tokens](https://www.patternfly.org/tokens/all-patternfly-tokens)
 for colors instead.
 
 The stylelint config also disallows naked element selectors like `table` and
 `.pf-` or `.co-` prefixed classes. This prevents plugins from accidentally
 overwriting default console styles, breaking the layout of existing pages. The
-best practice is to prefix your CSS classnames with your plugin name to avoid
+best practice is to prefix your CSS class names with your plugin name to avoid
 conflicts. Please don't disable these rules without understanding how they can
 break console styles!
 
@@ -225,10 +221,10 @@ Steps to generate reports
 
 1. In command prompt, navigate to root folder and execute the command `yarn run cypress-merge`
 2. Then execute command `yarn run cypress-generate`
-The cypress-report.html file is generated and should be in (/integration-tests/screenshots) directory
+The cypress-report.html file is generated and should be in (/integration-tests/screenshots) directory.
 
 ## References
 
-- [Console Plugin SDK README](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
+- [Console Plugin SDK README](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk)
 - [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
-- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
+- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/main/enhancements/console/dynamic-plugins.md)
