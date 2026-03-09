@@ -227,4 +227,4 @@ The cypress-report.html file is generated and should be in (/integration-tests/s
 
 - [Console Plugin SDK README](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk)
 - [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
-- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/main/enhancements/console/dynamic-plugins.md)
+- [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
