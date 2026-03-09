@@ -27,15 +27,15 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
     "@cypress/webpack-preprocessor": "^7.0.2",
-    "@openshift-console/dynamic-plugin-sdk": "4.20-latest",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "4.20-latest",
+    "@openshift-console/dynamic-plugin-sdk": "4.21-latest",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "4.21-latest",
     "@patternfly/react-core": "^6.2.2",
     "@patternfly/react-icons": "^6.2.2",
     "@patternfly/react-table": "^6.2.2",
     "@types/node": "^22.0.0",
     "@types/react": "^17.0.37",
     "@types/react-router-dom": "^5.3.3",
-    "babel-loader": "^10.0.0",
+    "babel-loader": "^10.1.0",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.4",
     "cypress": "^15.11.0",
@@ -49,10 +49,10 @@
     "globals": "^17.4.0",
     "i18next": "^23.11.5",
     "i18next-parser": "^9.4.0",
-    "mocha": "^10.2.0",
+    "mocha": "^11.7.5",
     "mocha-junit-reporter": "^2.2.1",
     "mochawesome": "^7.1.4",
-    "mochawesome-merge": "^4.3.0",
+    "mochawesome-merge": "^5.1.1",
     "pluralize": "^8.0.0",
     "prettier": "^3.8.1",
     "prettier-stylelint": "^0.4.2",
@@ -82,7 +82,7 @@
       "ExamplePage": "./components/ExamplePage"
     },
     "dependencies": {
-      "@console/pluginAPI": "^4.20.0"
+      "@console/pluginAPI": "^4.21.0"
     }
   },
   "packageManager": "yarn@4.13.0"
