@@ -2,40 +2,35 @@ import { checkErrors } from '../support';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
 const PLUGIN_TEMPLATE_PULL_SPEC = Cypress.env('PLUGIN_TEMPLATE_PULL_SPEC');
-export const isLocalDevEnvironment = Cypress.config('baseUrl').includes('localhost');
 
-export const guidedTour = {
-  close: () => {
-    cy.get('body').then(($body) => {
-      if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
-        cy.get(`[data-test="tour-step-footer-secondary"]`).contains('Skip tour').click();
-      }
-    });
-  },
-  isOpen: () => {
-    cy.get('body').then(($body) => {
-      if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
-        cy.get(`[data-test="guided-tour-modal"]`).should('be.visible');
-      }
-    });
-  },
-};
+export const isLocalDevEnvironment = Cypress.config('baseUrl')!.includes('localhost');
 
 const installHelmChart = (path: string) => {
+  // Install the plugin in a dedicated namespace using the helm chart from this repo
   cy.exec(
     `cd ../../console-plugin-template && ${path} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
     {
       failOnNonZeroExit: false,
     },
-  )
-    .get('[data-test="refresh-web-console"]', { timeout: 300000 })
-    .should('exist')
-    .then((result) => {
-      cy.reload();
-      cy.visit(`/dashboards`);
-      cy.log('Error installing helm chart: ', result.stderr);
-      cy.log('Successfully installed helm chart: ', result.stdout);
-    });
+  ).then((result) => {
+    result.stderr && cy.log('Error installing helm chart: ', result.stderr);
+    result.stdout && cy.log('Successfully installed helm chart: ', result.stdout);
+  });
+
+  // Wait for the plugin deployment to be ready
+  cy.exec(
+    `oc rollout status -n ${PLUGIN_TEMPLATE_NAME} deploy/${PLUGIN_TEMPLATE_NAME} -w --timeout=300s`,
+    { timeout: 360000, failOnNonZeroExit: false },
+  );
+
+  // Wait for console pods to restart with the new plugin
+  cy.exec('oc rollout status -w deploy/console -n openshift-console --timeout=300s', {
+    timeout: 360000,
+    failOnNonZeroExit: false,
+  });
+
+  cy.visit('/k8s/cluster/operator.openshift.io~v1~Console/cluster/console-plugins');
+  cy.get(`[data-test="${PLUGIN_TEMPLATE_NAME}-status"]`).should('include.text', 'Loaded');
 };
 const deleteHelmChart = (path: string) => {
   cy.exec(
@@ -52,10 +47,9 @@ const deleteHelmChart = (path: string) => {
 describe('Console plugin template test', () => {
   before(() => {
     cy.login();
-    guidedTour.isOpen();
-    guidedTour.close();
+    cy.get(`[data-test="tour-step-footer-secondary"]`).contains('Skip tour').click();
     if (!isLocalDevEnvironment) {
-      console.log('this is not a local env, installig helm');
+      console.log('this is not a local env, installing helm');
 
       cy.exec('cd ../../console-plugin-template && ./install_helm.sh', {
         failOnNonZeroExit: false,
@@ -87,8 +81,8 @@ describe('Console plugin template test', () => {
 
   it('Verify the example page title', () => {
     cy.get('[data-quickstart-id="qs-nav-home"]').click();
-    cy.get('[data-test="nav"]').contains('Plugin Example').click();
+    cy.get('[data-test="nav"]').contains('Plugin example').click();
     cy.url().should('include', '/example');
-    cy.get('[data-test="example-page-title"]').should('contain', 'Hello, Plugin!');
+    cy.get('title').should('contain', 'Hello, plugin!');
   });
 });
