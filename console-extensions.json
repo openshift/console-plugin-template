@@ -11,7 +11,7 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "example",
-      "name": "%plugin__console-plugin-template~Plugin Example%",
+      "name": "%plugin__console-plugin-template~Plugin example%",
       "href": "/example",
       "perspective": "admin",
       "section": "home"
