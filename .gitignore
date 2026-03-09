@@ -4,3 +4,12 @@
 .devcontainer/dev.env
 integration-tests/videos
 integration-tests/screenshots
+
+# Yarn v4 (Berry)
+.yarn/*
+install-state.gz
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

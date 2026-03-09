@@ -1,5 +1,10 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.ts": "explicit"
+  },
   "search.exclude": {
     "**/node_modules": true
   },

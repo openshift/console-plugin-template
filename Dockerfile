@@ -1,6 +1,7 @@
-FROM registry.access.redhat.com/ubi9/nodejs-18:latest AS build
+FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS build
 USER root
-RUN command -v yarn || npm i -g yarn
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN command -v yarn || (npm i -g corepack && corepack enable)
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app

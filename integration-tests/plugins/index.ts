@@ -1,6 +1,6 @@
-import * as wp from '@cypress/webpack-preprocessor';
+const wp = require('@cypress/webpack-preprocessor');
 
-module.exports = (on, config) => {
+const config: Cypress.PluginConfig = (on, config) => {
   const options = {
     webpackOptions: {
       resolve: {
@@ -23,3 +23,5 @@ module.exports = (on, config) => {
   config.env.BRIDGE_KUBEADMIN_PASSWORD = process.env.BRIDGE_KUBEADMIN_PASSWORD;
   return config;
 };
+
+module.exports = config;
