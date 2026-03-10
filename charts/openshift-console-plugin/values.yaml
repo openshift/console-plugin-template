@@ -53,3 +53,6 @@ plugin:
         requests:
           cpu: 10m
           memory: 50Mi
+  rbac:
+    enabled: true
+
