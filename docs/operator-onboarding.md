@@ -15,12 +15,68 @@ Copy the template, fill in operator details, run it. Works on a clean repo (afte
 
 ---
 
+## Visual & Styling Standards
+
+All operator dashboards must follow these styling patterns for a professional, consistent appearance:
+
+**Page Layout:**
+- ✅ Wrap all content in `console-plugin-template__inspect-page` div (provides proper padding)
+- ✅ Display prominent `<Title headingLevel="h1" size="xl">` at top of page
+- ✅ Use `console-plugin-template__dashboard-cards` wrapper for Cards (vertical flex with gap)
+
+**Navigation:**
+- ✅ Use React Router `<Link to>` for all navigation (SPA, no page reloads)
+- ❌ Never use `<a href>` or `window.location.href`
+
+**Action Buttons:**
+- ✅ Put className on the `<Button>` component, not the wrapping `<Link>`
+- ✅ Use PatternFly `variant` prop for colors (`variant="primary"` = blue, `variant="danger"` = red)
+- ❌ Never add custom background-color/border-color CSS for buttons
+- ❌ Never put button styling classes on the Link wrapper
+
+**Tables:**
+- ✅ Use plugin-prefixed CSS classes: `console-plugin-template__table`, `__table-th`, `__table-td`, `__table-tr`
+- ✅ Define styles via CSS classes with PatternFly variables
+- ❌ Never use OpenShift console classes (`co-m-*`, `table`, `table-hover`)
+- ❌ Never use inline `style` attributes for table padding/layout
+
+**Loading States:**
+- ✅ Page-level: `<Spinner size="lg">` wrapped in `inspect-page` div
+- ✅ Table-level: Three-dot animated loader (`console-plugin-template__loader-dot`)
+
+**Empty States:**
+- ✅ Use PatternFly 6 API: `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h4">`
+- ❌ Never use separate `<Title>` or `EmptyStateHeader` components
+
+**CSS:**
+- ✅ Only PatternFly CSS variables (e.g., `var(--pf-t--global--spacer--lg)`)
+- ✅ Prefix all custom classes with `console-plugin-template__`
+- ❌ Never use hex colors
+- ❌ Never use `.pf-` or `.co-` prefixes for custom classes
+
+**Result:** Professional dashboards with proper spacing, smooth navigation, and visual consistency.
+
+---
+
 ## Existing Shared Components
 
 The project already includes:
 
-- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Renders a plain `<table>` with thead/tbody, loading (three-dot loader), error Alert, empty EmptyState, or data rows. Use this for **all** operator resource tables; do not use VirtualizedTable for the dashboard tables.
-- **`ResourceTableRowActions`** (exported from the same file) — Renders Inspect + Delete **buttons** for one row. Accepts `resource: K8sResourceCommon` and `inspectHref: string`. Use it in the Actions cell of each row so `useDeleteModal` is called per row (hooks cannot be called inside `.map()`).
+- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Renders a plain `<table>` with thead/tbody using **plugin-prefixed CSS classes** (`console-plugin-template__table`, `__table-th`, `__table-td`, etc.), loading (three-dot animated loader), error Alert, empty EmptyState, or data rows. Use this for **all** operator resource tables; do not use VirtualizedTable. Expects corresponding CSS classes defined in operator CSS file (see Step 7).
+- **`ResourceTableRowActions`** (exported from the same file) — Renders Inspect + Delete **buttons** for one row. Structure:
+  ```tsx
+  <div className=”console-plugin-template__action-buttons”>
+    <Link to={inspectHref}>
+      <Button className=”console-plugin-template__action-inspect” variant=”primary” size=”sm”>
+        {t('Inspect')}
+      </Button>
+    </Link>
+    <Button className=”console-plugin-template__action-delete” variant=”danger” size=”sm” onClick={launchDeleteModal}>
+      {t('Delete')}
+    </Button>
+  </div>
+  ```
+  **Critical:** `className` goes on `<Button>`, NOT on `<Link>`. Colors come from `variant` prop (`primary`=blue, `danger`=red). Use it in the Actions cell of each row so `useDeleteModal` is called per row (hooks cannot be called inside `.map()`).
 - **`src/ResourceInspect.tsx`** — Shared resource detail page: Card + Grid layout, back button, Metadata/Labels/Annotations/Spec/Status/Events cards, optional “Show/Hide sensitive data” for spec/status. When adding a new operator, **add** entries to `DISPLAY_NAMES`, `getResourceModel(resourceType)`, and `getPagePath(resourceType)`; do not rewrite the component or change its layout/styling pattern.
 
 ---
@@ -44,55 +100,93 @@ Input:
    - displayName: [e.g. My Resources]
 3) Optional fixed namespace: [NAMESPACE or (none)]
 4) Optional column overrides: [none] or per-resource list of columns (title, id, jsonPath, type?) to use instead of the operator-agnostic algorithm.
+5) API group verification (paste the output of the command below — REQUIRED):
+   Run on the cluster before filling in groups/versions above:
+   ```bash
+   oc api-resources | grep -i <operator-keyword>
+   # e.g. for NFD: oc api-resources | grep -i feature
+   # e.g. for cert-manager: oc api-resources | grep -i cert
+   ```
+   Paste full output here: [PASTE OUTPUT]
+   Use the APIVERSION column values as the authoritative source for groups and versions.
+   Do NOT rely on upstream documentation for API groups — OpenShift-packaged operators
+   frequently use different groups (e.g. *.openshift.io, *.k8s-sigs.io) from the
+   community upstream (e.g. *.kubernetes.io).
 
 Follow the implementation specification in this document exactly.
 Start implementation immediately. Do not ask for confirmation.
-If any input is missing, infer from upstream CRD docs and record inferences in the final summary.
+If any input is missing EXCEPT for field 5, infer from upstream CRD docs and record inferences in the final summary.
+Field 5 (API group verification) must NOT be inferred — it must be obtained from the actual cluster.
 ```
 
 ---
 
 ## What NOT to Do
 
+- **Do NOT assume API groups from upstream documentation.** OpenShift-packaged operators routinely use different groups than the community upstream (e.g. `nfd.openshift.io` instead of `nfd.kubernetes.io`, `*.k8s-sigs.io` instead of `*.kubernetes.io`). Always run `oc api-resources | grep -i <keyword>` on the actual cluster and use the `APIVERSION` column as the authoritative source. Wrong groups cause `useK8sModel` to return `null`, which shows "Operator not installed" even when the operator is running.
+- **Do NOT assume cluster-scoped vs namespaced** from upstream docs. Check the `NAMESPACED` column in `oc api-resources` output — the same CRD kind can be namespaced in one distribution and cluster-scoped in another. Namespaced resources require a `selectedProject` prop and a Namespace column in the table; cluster-scoped resources do not.
 - **Do NOT use `consoleFetchJSON`** for operator/CRD detection; use `useK8sModel` only.
 - **Do NOT use VirtualizedTable** for the operator dashboard resource tables; use **ResourceTable** with `columns` and `rows`.
 - **Do NOT call `useDeleteModal` inside a `.map()` callback.** Use a per-row component (e.g. `ResourceTableRowActions`) that receives the resource and calls `useDeleteModal(resource)`.
-- **Do NOT use link-styled-only actions:** Inspect and Delete must be real **buttons** (Inspect = sky blue background, Delete = red). Style them with PatternFly CSS variables in the shared CSS (e.g. `--pf-v6-global--palette--blue-400`, `--pf-v6-global--palette--red-500`).
+- **Do NOT use link-styled-only actions:** Inspect and Delete must be real **buttons** with proper colors. Use PatternFly's `variant` prop: `variant="primary"` (blue) for Inspect, `variant="danger"` (red) for Delete. Never add custom background-color/border-color CSS for buttons.
+- **Do NOT put button styling `className` on the `<Link>` wrapper.** Put `className` (e.g., `console-plugin-template__action-inspect`) on the `<Button>` component itself. Putting className on Link can break PatternFly button styling.
 - **Do NOT use hex colors** (e.g. `#1e1e1e`, `#374151`) in CSS or inline styles. Use **PatternFly CSS variables only** (e.g. `var(--pf-v6-global--BackgroundColor--200)`, `var(--pf-v6-global--BorderColor--100)`).
 - **Do NOT use `.pf-` or `.co-` prefixed class names** for your own structure (e.g. `co-m-loader`, `co-m-pane__body`). Use **`console-plugin-template__`** prefix for all custom classes.
+- **Do NOT use OpenShift console CSS classes** like `co-m-loader`, `co-m-table-grid`, `table`, `table-hover`. Replace with plugin-prefixed classes: `console-plugin-template__loader`, `console-plugin-template__table`, etc.
+- **Do NOT use `window.location.href` or `<a href>` for navigation.** Use React Router’s `<Link to>` for SPA navigation without page reloads.
+- **Do NOT use inline styles** for table padding, layout, or spacing. Use CSS classes with PatternFly variables instead.
 - **Do NOT use PatternFly 6 `EmptyStateHeader` or `EmptyStateIcon`**; they do not exist. Use props on `<EmptyState>`: `titleText`, `icon={SearchIcon}`, `headingLevel`.
 - **Do NOT use `Label`’s `variant` prop for status colors.** Use the **`status`** prop: `status="success"` (green), `status="danger"` (red), `status="warning"` (orange). (`variant` is for outline/filled/overflow/add.)
 - **Do NOT use `PageSection variant="light"`**; use `"default"` or `"secondary"`.
-- **Do NOT assume `useActiveNamespace()` returns `'all'`** when all namespaces are selected; it returns **`#ALL_NS#`**.
+- **Do NOT assume `useActiveNamespace()` returns `’all’`** when all namespaces are selected; it returns **`#ALL_NS#`**.
 - **Do NOT create two separate routes for inspect** (e.g. one for namespaced and one for cluster-scoped). Use **one** route with `path: ["/<operator-short-name>/inspect"]` and `exact: false`; the component parses the rest of the path.
 - **Do NOT put the operator dashboard link under `section: "home"`.** It must be **`section: "plugins"`** so it appears under Plugins.
 - **Do NOT rely on margin alone for spacing between table cards** if it collapses. Use a **wrapper div** with `display: flex`, `flex-direction: column`, and **`gap`** (e.g. `console-plugin-template__dashboard-cards`).
 - **Do NOT add `titleFormat` to table column config** when using the SDK’s `TableColumn` type elsewhere; it is not part of that type. For ResourceTable, columns only have `title` and optional `width`.
 - **Do NOT rewrite `ResourceInspect.tsx`** when adding an operator. Extend its `DISPLAY_NAMES`, `getResourceModel`, and `getPagePath`; keep the existing Card + Grid layout and back button.
-- **Do NOT use `$codeRef` with only the module name** (e.g. `"$codeRef": "CertManagerPage"`) for route components in `console-extensions.json`. The Console ExtensionValidator treats that as the **default** export; if the module uses a **named** export (e.g. `export const CertManagerPage`), the build fails with **"Invalid module export 'default' in extension [N] property 'component'"**. Always use the **`moduleName.exportName`** form (e.g. `"$codeRef": "CertManagerPage.CertManagerPage"`, `"$codeRef": "ResourceInspect.ResourceInspect"`).
+- **Do NOT use `$codeRef` with only the module name** (e.g. `"$codeRef": "CertManagerPage"`) for route components in `console-extensions.json`. The Console ExtensionValidator treats that as the **default** export; if the module uses a **named** export (e.g. `export const CertManagerPage`), the build fails with **"Invalid module export ‘default’ in extension [N] property ‘component’"**. Always use the **`moduleName.exportName`** form (e.g. `"$codeRef": "CertManagerPage.CertManagerPage"`, `"$codeRef": "ResourceInspect.ResourceInspect"`).
 
 ---
 
 ## Critical Rules (read before coding)
 
+**Functional:**
+0. **Verify API groups on the cluster FIRST.** Before writing any code, run:
+   ```bash
+   oc api-resources | grep -i <operator-keyword>
+   ```
+   Use the `APIVERSION` column for the correct `group/version` and the `NAMESPACED` column for scope. Do not trust upstream docs or OperatorHub listings for these values — OpenShift distributions frequently use different API groups (e.g. `nfd.openshift.io/v1` instead of `nfd.kubernetes.io/v1`). Wrong values will cause `useK8sModel` to return `null`, showing "Operator not installed" even when the operator is installed and running.
 1. **Operator detection:** Use **`useK8sModel`** only. `consoleFetchJSON` to CRD/API-group endpoints fails silently due to RBAC in the console proxy.
 2. **EmptyState (PatternFly 6):** Use `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h2"><EmptyStateBody>...</EmptyStateBody></EmptyState>`.
 3. **`useActiveNamespace`** returns **`#ALL_NS#`** when all namespaces are selected (not `'all'`).
 4. **Inspect route:** Single route with `path: ["/<operator-short-name>/inspect"]`, `exact: false`. Component parses path segments internally.
 5. **Navigation:** Operator link under **Plugins** (`section: "plugins"`). Create Plugins section first if missing; do not duplicate section or link.
 6. **`useK8sWatchResource`:** Use the **`groupVersionKind`** object (`{ group, version, kind }`), not the deprecated `kind` string.
-7. **CSS:** Only PatternFly CSS variables; no hex. Prefix all custom classes with **`console-plugin-template__`**. No naked element selectors that could affect console globally; scope under your classes. **Keyframes names** must be kebab-case (e.g. `console-plugin-template-loader-bounce`).
-8. **i18n namespace:** **`plugin__console-plugin-template`**.
-9. **Cluster-scoped resources:** No Namespace column, no `selectedProject` on the table, inspect URL has 2 segments (`/<plural>/<name>`), no `/namespaces/<ns>/` in delete path.
-10. **`console-extensions.json` component references:** Every route `component` must use **`$codeRef`** in the form **`moduleName.exportName`** (e.g. `CertManagerPage.CertManagerPage`, `ResourceInspect.ResourceInspect`). The plugin SDK resolves a bare module name (e.g. `CertManagerPage`) as the **default** export; our page and inspect components use **named** exports. Using only the module name causes the build to fail with "Invalid module export 'default' in extension [N] property 'component'". Page and ResourceInspect modules must **export const** the component (named export); then reference it as `"<ModuleName>.<ExportName>"` in `console-extensions.json`.
+7. **i18n namespace:** **`plugin__console-plugin-template`**.
+8. **Cluster-scoped resources:** No Namespace column, no `selectedProject` on the table, inspect URL has 2 segments (`/<plural>/<name>`), no `/namespaces/<ns>/` in delete path.
+9. **`console-extensions.json` component references:** Every route `component` must use **`$codeRef`** in the form **`moduleName.exportName`** (e.g. `CertManagerPage.CertManagerPage`, `ResourceInspect.ResourceInspect`). The plugin SDK resolves a bare module name (e.g. `CertManagerPage`) as the **default** export; our page and inspect components use **named** exports. Using only the module name causes the build to fail with "Invalid module export 'default' in extension [N] property 'component'". Page and ResourceInspect modules must **export const** the component (named export); then reference it as `"<ModuleName>.<ExportName>"` in `console-extensions.json`.
+
+**Styling (for professional appearance):**
+10. **Page layout:** All page states must wrap content in `console-plugin-template__inspect-page` div. Add `<Title headingLevel="h1" size="xl">` at top with bottom margin. Nest Cards in `console-plugin-template__dashboard-cards` wrapper.
+11. **Navigation:** Use React Router **`<Link to>`** for all links (table names, action buttons). Never use `<a href>` or `window.location.href` (causes full page reload).
+12. **Button structure:** Put `className` on the `<Button>` component, NOT on the wrapping `<Link>`. Button colors come from `variant` prop (`variant="primary"` for blue Inspect, `variant="danger"` for red Delete). Never add custom background-color/border-color CSS for buttons.
+13. **CSS classes:** Replace ALL OpenShift console classes (`co-m-loader`, `co-m-table-grid`, `table`, `table-hover`) with plugin-prefixed classes (`console-plugin-template__loader`, `console-plugin-template__table`, etc.). See Step 7 for complete list.
+14. **CSS variables only:** Use PatternFly CSS variables (e.g., `var(--pf-t--global--spacer--lg)`), never hex colors. Prefix all custom classes with **`console-plugin-template__`**. **Keyframes names** must be kebab-case (e.g. `console-plugin-template-loader-bounce`).
+15. **No inline styles:** Table elements (`th`, `td`, `tr`) must use CSS classes, not inline `style` attributes for padding/alignment/borders.
 
 ---
 
 ## Read-First Files
 
+**Before reading any files, run this on the cluster:**
+```bash
+oc api-resources | grep -i <operator-keyword>
+```
+Use the `APIVERSION` and `NAMESPACED` columns as the authoritative source for groups, versions, and resource scope. See Step 0 for details.
+
 | File | Purpose |
 |------|--------|
-| `src/components/ResourceTable.tsx` | Shared table API (columns, rows, loading, error, empty); `ResourceTableRowActions` for Inspect/Delete |
+| `src/components/ResourceTable.tsx` | Shared table API (columns, rows, loading, error, empty); `ResourceTableRowActions` for Inspect/Delete buttons (className on Button, variant for colors) |
 | `src/ResourceInspect.tsx` | Shared inspect page (Card + Grid, back button); extend DISPLAY_NAMES, getResourceModel, getPagePath |
 | `src/hooks/useOperatorDetection.ts` | Operator CRD detection hook |
 | `src/components/crds/index.ts` | K8sModel and TS interfaces per kind |
@@ -137,6 +231,28 @@ Tables MUST follow this column logic (implement when building rows for ResourceT
 
 ## Implementation Steps
 
+### Step 0 — Verify API groups on the cluster (REQUIRED before any coding)
+
+Run this command on the cluster and record the output:
+
+```bash
+oc api-resources | grep -i <operator-keyword>
+# Example: oc api-resources | grep -i cert
+# Example: oc api-resources | grep -i feature
+# Example: oc api-resources | grep -i pipeline
+```
+
+From the output, use:
+- **`APIVERSION` column** → determines the correct `group` and `version` for every K8s model and GVK object in the code. Format is `<group>/<version>` (e.g. `nfd.openshift.io/v1` → group `nfd.openshift.io`, version `v1`). An entry with no slash (e.g. `v1`) means core group (`""`).
+- **`NAMESPACED` column** → `true` means the resource needs a `selectedProject` prop and a Namespace column; `false` means cluster-scoped (no namespace in inspect URL, no `selectedProject`).
+- **`KIND` column** → confirms the exact kind name to use.
+
+**Common pitfall:** OpenShift-packaged operators often register CRDs under their own `*.openshift.io` or `*.k8s-sigs.io` group instead of the upstream `*.kubernetes.io` group. If the wrong group is used, `useK8sModel` returns `null` and the dashboard shows "Operator not installed" even though the operator is running.
+
+Do not proceed to Step 1 until you have the verified API group/version/scope for every resource kind you plan to expose.
+
+---
+
 ### Step 1 — Directories
 
 ```bash
@@ -163,23 +279,156 @@ Create only if missing. Generic empty state with `EmptyState` (titleText, icon={
 
 **Use ResourceTable.** One file per resource kind.
 
+- **Import React Router Link:** Add `import { Link } from ‘react-router-dom’;` at the top.
 - Build **columns**: array of `{ title, width? }` (Name, Namespace if namespaced, then algorithm columns, then Actions).
-- Build **rows**: from `useK8sWatchResource` list; each row’s **cells** array includes Name (Link to inspect), Namespace if namespaced, Status (Label with **status** prop), Created (Timestamp), and **`<ResourceTableRowActions resource={obj} inspectHref={inspectHref} />`** for the Actions cell.
+- Build **rows**: from `useK8sWatchResource` list; each row’s **cells** array includes:
+  - **Name cell:** Use `<Link key="name" to={inspectHref}>{name}</Link>` for SPA navigation (not `<a href>`).
+  - Namespace (if namespaced), Status (Label with **status** prop), Created (Timestamp).
+  - **Actions cell:** `<ResourceTableRowActions resource={obj} inspectHref={inspectHref} />` (already uses Link internally).
 - Pass **loading** (`!loaded && !loadError`), **error** (`loadError?.message`), **emptyStateTitle**, **emptyStateBody**, **selectedProject** (namespaced only), **data-test**.
 - **Namespaced:** `selectedProject`, inspect href `/<page>/inspect/<plural>/${namespace}/${name}`.
 - **Cluster-scoped:** no `selectedProject`, inspect href `/<page>/inspect/<plural>/${name}`.
 
-Do **not** use VirtualizedTable or call `useDeleteModal` inside `.map()`.
+**Example Name cell:**
+```tsx
+<Link key="name" to={inspectHref}>
+  {name}
+</Link>
+```
+
+**Actions cell:** Always use the shared `ResourceTableRowActions` component. Do NOT implement custom button logic. The component already has the correct structure with `className` on buttons (not on Link) and `variant` prop for colors.
+
+Do **not** use VirtualizedTable, `<a href>`, or call `useDeleteModal` inside `.map()`.
 
 ### Step 7 — CSS (`src/components/<operator-short-name>.css`)
 
-Add only missing classes. Use **PatternFly variables only** (no hex). Include:
+Add only missing classes. Use **PatternFly variables only** (no hex). **Required classes:**
 
-- `.console-plugin-template__resource-card` (margin or used in dashboard wrapper).
-- Dashboard cards wrapper: `.console-plugin-template__dashboard-cards` with `display: flex`, `flex-direction: column`, **`gap: var(--pf-v6-global--spacer--xl)`** so tables are not stuck together. Cards inside can have `margin-bottom: 0`.
-- Table styles for ResourceTable (header/data row background, borders, **text-align: left** for table data).
-- Loader (e.g. `.console-plugin-template__loader`, `.console-plugin-template__loader-dot`). **Keyframes** names must be **kebab-case** (e.g. `console-plugin-template-loader-bounce`).
-- Action buttons: `.console-plugin-template__action-inspect` (sky blue background/border), `.console-plugin-template__action-delete` (red), using `var(--pf-v6-global--palette--blue-400)`, `var(--pf-v6-global--palette--red-500)` (and hover variants).
+**Page Layout:**
+```css
+.console-plugin-template__inspect-page {
+  padding: var(--pf-t--global--spacer--lg) var(--pf-t--global--spacer--xl);
+}
+
+.console-plugin-template__dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-t--global--spacer--xl);
+}
+
+.console-plugin-template__resource-card {
+  margin-bottom: 0;
+}
+```
+
+**Table Structure (replaces OpenShift console classes):**
+```css
+.console-plugin-template__resource-table {
+  overflow: hidden;
+}
+
+.console-plugin-template__table-responsive {
+  overflow-x: auto;
+}
+
+.console-plugin-template__table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.console-plugin-template__table-th {
+  padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+  text-align: left;
+  vertical-align: middle;
+  background-color: var(--pf-t--global--background--color--secondary--default);
+  border-bottom: 1px solid var(--pf-t--global--border--color--default);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+.console-plugin-template__table-tr {
+  border-bottom: 1px solid var(--pf-t--global--border--color--default);
+}
+
+.console-plugin-template__table-tr:hover {
+  background-color: var(--pf-t--global--background--color--secondary--hover);
+}
+
+.console-plugin-template__table-td {
+  padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+  text-align: left;
+  vertical-align: middle;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.console-plugin-template__table-message {
+  padding: var(--pf-t--global--spacer--lg);
+}
+```
+
+**Loading Spinner (three-dot animated loader):**
+```css
+.console-plugin-template__loader {
+  display: flex;
+  gap: var(--pf-t--global--spacer--sm);
+  align-items: center;
+  justify-content: center;
+  padding: var(--pf-t--global--spacer--lg);
+}
+
+.console-plugin-template__loader-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--pf-t--global--color--brand--default);
+  animation: console-plugin-template-loader-bounce 1.2s infinite ease-in-out;
+}
+
+.console-plugin-template__loader-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.console-plugin-template__loader-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.console-plugin-template__loader-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes console-plugin-template-loader-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+```
+
+**Action Buttons:**
+```css
+.console-plugin-template__action-buttons {
+  display: flex;
+  gap: var(--pf-t--global--spacer--xs);
+  flex-wrap: nowrap;
+}
+
+.console-plugin-template__action-inspect {
+  flex-shrink: 0;
+}
+
+.console-plugin-template__action-delete {
+  flex-shrink: 0;
+}
+```
+
+**Important:** Button colors come from PatternFly's `variant` prop (`variant="primary"` for blue Inspect button, `variant="danger"` for red Delete button). Do NOT add custom background-color/border-color CSS for buttons. The action- classes are only for layout (flex-shrink), not colors.
+
+**Critical:** Never use `co-m-*`, `table-hover`, or inline `style` attributes. All styling via CSS classes with PatternFly variables. Keyframes names must be **kebab-case**.
 
 ### Step 7b — Optional: Overview dashboard
 
@@ -187,10 +436,85 @@ Optional summary count cards above tables. Component that uses `useK8sWatchResou
 
 ### Step 8 — Operator page (`src/<OperatorShortName>Page.tsx`)
 
-- Use **`#ALL_NS#`** (not `'all'`) to derive `selectedProject`.
-- Loading: Spinner or shared loader.
-- Not installed: Helmet, title, OperatorNotInstalled.
-- Main view: Helmet, title, then a **wrapper div** with class `console-plugin-template__dashboard-cards` (flex, column, gap), containing one **Card** per resource kind; each Card has CardTitle and CardBody with the corresponding **Table** component. Pass **selectedProject** only to namespaced tables.
+**Imports:** Add `Title` and `Spinner` from `@patternfly/react-core`.
+
+**Structure with proper visual hierarchy:**
+
+```tsx
+import { Title, Card, CardTitle, CardBody, Spinner } from '@patternfly/react-core';
+
+export const MyOperatorPage: React.FC = () => {
+  const { t } = useTranslation('plugin__console-plugin-template');
+  const [activeNamespace] = useActiveNamespace();
+  const operatorStatus = useOperatorDetection(MY_OPERATOR_INFO);
+
+  const selectedProject = activeNamespace === '#ALL_NS#' ? '#ALL_NS#' : activeNamespace;
+  const pageTitle = t('My Operator');
+
+  // Loading state
+  if (operatorStatus === 'loading') {
+    return (
+      <>
+        <Helmet><title>{pageTitle}</title></Helmet>
+        <div className="console-plugin-template__inspect-page">
+          <Spinner size="lg" aria-label={t('Loading...')} />
+        </div>
+      </>
+    );
+  }
+
+  // Not installed state
+  if (operatorStatus === 'not-installed') {
+    return (
+      <>
+        <Helmet><title>{pageTitle}</title></Helmet>
+        <div className="console-plugin-template__inspect-page">
+          <Title headingLevel="h1" size="xl">
+            {pageTitle}
+          </Title>
+          <OperatorNotInstalled operatorDisplayName={MY_OPERATOR_INFO.displayName} />
+        </div>
+      </>
+    );
+  }
+
+  // Main dashboard
+  return (
+    <>
+      <Helmet><title>{pageTitle}</title></Helmet>
+      <div className="console-plugin-template__inspect-page">
+        <Title
+          headingLevel="h1"
+          size="xl"
+          style={{ marginBottom: 'var(--pf-t--global--spacer--lg)' }}
+        >
+          {pageTitle}
+        </Title>
+
+        <div className="console-plugin-template__dashboard-cards">
+          <Card className="console-plugin-template__resource-card">
+            <CardTitle>{t('My Resources')}</CardTitle>
+            <CardBody>
+              <MyResourcesTable selectedProject={selectedProject} />
+            </CardBody>
+          </Card>
+          {/* Repeat Card for each resource kind */}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default MyOperatorPage;
+```
+
+**Critical requirements:**
+- Use **`#ALL_NS#`** (not `'all'`) when comparing `activeNamespace`.
+- Wrap all states in `console-plugin-template__inspect-page` for proper padding.
+- Add prominent **`<Title>`** at the top with bottom margin.
+- Nest Cards inside `console-plugin-template__dashboard-cards` for vertical spacing.
+- Pass **`selectedProject`** only to namespaced tables.
+- Export both named (`export const`) and default (`export default`).
 
 ### Step 9 — `src/ResourceInspect.tsx` (extend only)
 
@@ -224,22 +548,39 @@ In `charts/openshift-console-plugin/templates/rbac-clusterroles.yaml`, add or ap
 
 ## Validation
 
+- **Before coding:** Confirm `oc api-resources | grep -i <keyword>` output has been obtained and used for all API groups, versions, and namespaced/cluster-scoped classification.
 - Run **`yarn build-dev`**. It must succeed (ignore pre-existing `node_modules` errors). If you see **"Invalid module export 'default' in extension [N] property 'component'"**, fix `console-extensions.json`: change each route `component` `$codeRef` from `"ModuleName"` to `"ModuleName.ExportName"` (e.g. `CertManagerPage.CertManagerPage`).
 - Run **`yarn lint`** (eslint + stylelint). Fix any issues in `src/` or CSS.
+- **Runtime check:** Navigate to `/<operator-short-name>` in the console. If it shows "Operator not installed" when the operator is installed, the API group or version is wrong. Re-run `oc api-resources` and compare with the values used in the CRD models and `useOperatorDetection`.
 
 ---
 
 ## Definition of Done
 
+**Functionality:**
+- [ ] API groups and namespaced/cluster-scoped scope confirmed via **`oc api-resources | grep -i <keyword>`** before any code was written; `APIVERSION` column values used in all CRD models.
 - [ ] Operator detected via **useK8sModel** (not consoleFetchJSON).
 - [ ] Plugins section exists; operator link under **Plugins** with **section: "plugins"**.
 - [ ] Dashboard at `/<operator-short-name>` with **ResourceTable** in Cards, wrapped in **dashboard-cards** (gap), **left-aligned** table data.
 - [ ] Inspect and Delete are **buttons** (sky blue and red); **ResourceTableRowActions** used so delete modal works per row.
 - [ ] Inspect opens ResourceInspect at `/<operator-short-name>/inspect/...` with Metadata, Labels, Annotations, Spec, Status, Events (Card + Grid, back button).
 - [ ] ResourceInspect extended with new DISPLAY_NAMES, getResourceModel, getPagePath (no layout rewrite).
-- [ ] No hex colors; no `.pf-`/`.co-` custom structure; keyframes kebab-case.
 - [ ] **Route components in `console-extensions.json`** use `$codeRef` as **`moduleName.exportName`** (e.g. `CertManagerPage.CertManagerPage`, `ResourceInspect.ResourceInspect`); no "Invalid module export 'default'" on build.
 - [ ] Locales and RBAC updated; `yarn build-dev` and `yarn lint` pass.
+
+**Styling & Visual Quality:**
+- [ ] Page has visible **`<Title>`** component at top with proper spacing (`headingLevel="h1"`, `size="xl"`).
+- [ ] All page states (loading, not-installed, main) wrapped in `console-plugin-template__inspect-page` for proper padding.
+- [ ] Loading state uses `<Spinner>` from PatternFly (not custom loader for page-level).
+- [ ] All table navigation uses **`<Link to>`** from react-router-dom (no `<a href>` or `window.location.href`).
+- [ ] Tables use **plugin-prefixed CSS classes** (`console-plugin-template__table`, `__table-th`, `__table-td`, `__table-tr`), not OpenShift classes (`co-m-*`, `table`, `table-hover`).
+- [ ] Table headers and cells use **CSS classes** (no inline `style` attributes for padding/alignment).
+- [ ] Empty states use new PatternFly API (`titleText` prop, `icon={SearchIcon}`, not separate `<Title>` component).
+- [ ] CSS file includes all required classes: page layout, table structure, loader, action buttons (see Step 7).
+- [ ] No hex colors; no `.pf-`/`.co-` custom structure; keyframes kebab-case.
+- [ ] Action buttons use `console-plugin-template__action-buttons` wrapper with proper flex layout.
+- [ ] Button className on `<Button>` component (not on wrapping `<Link>`); colors from `variant` prop only.
+- [ ] Dashboard cards have vertical spacing via `gap` in `console-plugin-template__dashboard-cards` wrapper.
 
 ---
 
@@ -249,3 +590,162 @@ In `charts/openshift-console-plugin/templates/rbac-clusterroles.yaml`, add or ap
 2. **CRDs/resources** used (and any inferred values).
 3. **Validation** (build + lint).
 4. **Assumptions / risks.**
+
+---
+
+## Quick Reference: Styling Patterns
+
+**Page Structure:**
+```tsx
+// ✅ Good: Proper layout with Title
+<div className="console-plugin-template__inspect-page">
+  <Title headingLevel="h1" size="xl"
+         style={{ marginBottom: 'var(--pf-t--global--spacer--lg)' }}>
+    {pageTitle}
+  </Title>
+  <div className="console-plugin-template__dashboard-cards">
+    <Card>...</Card>
+  </div>
+</div>
+
+// ❌ Bad: No wrapper, no title
+<div className="console-plugin-template__dashboard-cards">
+  <Card>...</Card>
+</div>
+```
+
+**Navigation:**
+```tsx
+// ✅ Good: React Router Link
+import { Link } from 'react-router-dom';
+<Link to={inspectHref}>{name}</Link>
+
+// ❌ Bad: Full page reload
+<a href={inspectHref}>{name}</a>
+window.location.href = inspectHref;
+```
+
+**Action Buttons:**
+```tsx
+// ✅ Good: className on Button, variant for colors
+<div className="console-plugin-template__action-buttons">
+  <Link to={inspectHref}>
+    <Button className="console-plugin-template__action-inspect" variant="primary" size="sm">
+      {t('Inspect')}
+    </Button>
+  </Link>
+  <Button
+    className="console-plugin-template__action-delete"
+    variant="danger"
+    size="sm"
+    onClick={launchDeleteModal}
+  >
+    {t('Delete')}
+  </Button>
+</div>
+
+// ❌ Bad: className on Link wrapper
+<div className="console-plugin-template__action-buttons">
+  <Link to={inspectHref} className="console-plugin-template__action-inspect">
+    <Button variant="primary" size="sm">  {/* Missing className! */}
+      {t('Inspect')}
+    </Button>
+  </Link>
+</div>
+
+// ❌ Bad: Custom color CSS instead of variant
+<Button className="my-custom-button">  {/* Wrong approach */}
+/* CSS: .my-custom-button { background-color: #0066cc; } */
+```
+
+**Table Classes:**
+```tsx
+// ✅ Good: Plugin-prefixed classes
+<div className="console-plugin-template__resource-table">
+  <div className="console-plugin-template__table-responsive">
+    <table className="console-plugin-template__table">
+      <thead>
+        <tr>
+          <th className="console-plugin-template__table-th">Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr className="console-plugin-template__table-tr">
+          <td className="console-plugin-template__table-td">value</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+// ❌ Bad: OpenShift console classes
+<div className="co-m-table-grid co-m-table-grid--bordered">
+  <div className="table-responsive">
+    <table className="table table-hover">
+      <th style={{ padding: '1rem' }}>Name</th>  {/* inline styles */}
+    </table>
+  </div>
+</div>
+```
+
+**Loading States:**
+```tsx
+// ✅ Good: Page-level Spinner
+if (operatorStatus === 'loading') {
+  return (
+    <div className="console-plugin-template__inspect-page">
+      <Spinner size="lg" aria-label={t('Loading...')} />
+    </div>
+  );
+}
+
+// ✅ Good: Table-level loader
+if (loading) {
+  return (
+    <div className="console-plugin-template__loader">
+      <div className="console-plugin-template__loader-dot"></div>
+      <div className="console-plugin-template__loader-dot"></div>
+      <div className="console-plugin-template__loader-dot"></div>
+    </div>
+  );
+}
+
+// ❌ Bad: Console classes
+<div className="co-m-loader co-an-fade-in-out">
+  <div className="co-m-loader-dot__one"></div>
+</div>
+```
+
+**Empty States:**
+```tsx
+// ✅ Good: PatternFly 6 API
+<EmptyState
+  titleText={emptyStateTitle || t('No resources found')}
+  icon={SearchIcon}
+  headingLevel="h4"
+>
+  <EmptyStateBody>{emptyStateBody}</EmptyStateBody>
+</EmptyState>
+
+// ❌ Bad: Old API with separate Title
+<EmptyState>
+  <SearchIcon className="co-m-empty-state__icon" />
+  <Title size="lg" headingLevel="h4">{title}</Title>
+  <EmptyStateBody>{body}</EmptyStateBody>
+</EmptyState>
+```
+
+**CSS Variables:**
+```css
+/* ✅ Good: PatternFly variables */
+.console-plugin-template__table {
+  background-color: var(--pf-t--global--background--color--primary--default);
+  padding: var(--pf-t--global--spacer--md);
+}
+
+/* ❌ Bad: Hex colors, no prefix */
+.my-table {
+  background-color: #ffffff;
+  padding: 16px;
+}
+```
