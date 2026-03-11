@@ -12,6 +12,7 @@ Copy the template, fill in operator details, run it. Works on a clean repo (afte
 - **Per-row actions:** Each custom resource row has an **Inspect** button (navigates to the resource detail page) and a **Delete** button (opens confirmation modal). Both must be **buttons** (not link-styled only): Inspect with a sky-blue background, Delete with a red background.
 - **Resource detail dashboard (inspect page):** Clicking Inspect opens `/<operator-short-name>/inspect/<plural>/[namespace/]<name>`. The **ResourceInspect** component (see [Existing shared components](#existing-shared-components)) shows Metadata, Labels, Annotations, Specification, Status, and Events in a **Card + Grid** layout with a back button—no tabs. When adding a new operator, **extend** ResourceInspect’s maps and models; do not replace its layout or structure.
 - **Optional:** Overview dashboard (summary count cards above tables) per Step 7b. Not required.
+- **Expandable rows (one-to-many relationships):** Parent resources can have expandable rows showing related child resources inline. When a relationship is defined, the parent table row has an expand/collapse toggle; expanding reveals a nested table of child resources filtered by that parent. See **Step 6b** for implementation details.
 
 ---
 
@@ -100,7 +101,13 @@ Input:
    - displayName: [e.g. My Resources]
 3) Optional fixed namespace: [NAMESPACE or (none)]
 4) Optional column overrides: [none] or per-resource list of columns (title, id, jsonPath, type?) to use instead of the operator-agnostic algorithm.
-5) API group verification (paste the output of the command below — REQUIRED):
+5) Optional relationships (one-to-many): [none] or define parent-child relationships for expandable rows:
+   - parent: [ParentKind]
+     child: [ChildKind]
+     matchField: [field in child referencing parent, e.g. "spec.pipelineRef.name"]
+     matchType: [field | ownerRef | label]
+   (repeat block for each relationship, or omit entirely if no relationships)
+6) API group verification (paste the output of the command below — REQUIRED):
    Run on the cluster before filling in groups/versions above:
    ```bash
    oc api-resources | grep -i <operator-keyword>
@@ -115,8 +122,8 @@ Input:
 
 Follow the implementation specification in this document exactly.
 Start implementation immediately. Do not ask for confirmation.
-If any input is missing EXCEPT for field 5, infer from upstream CRD docs and record inferences in the final summary.
-Field 5 (API group verification) must NOT be inferred — it must be obtained from the actual cluster.
+If any input is missing EXCEPT for field 6, infer from upstream CRD docs and record inferences in the final summary.
+Field 6 (API group verification) must NOT be inferred — it must be obtained from the actual cluster.
 ```
 
 ---
@@ -145,6 +152,9 @@ Field 5 (API group verification) must NOT be inferred — it must be obtained fr
 - **Do NOT add `titleFormat` to table column config** when using the SDK’s `TableColumn` type elsewhere; it is not part of that type. For ResourceTable, columns only have `title` and optional `width`.
 - **Do NOT rewrite `ResourceInspect.tsx`** when adding an operator. Extend its `DISPLAY_NAMES`, `getResourceModel`, and `getPagePath`; keep the existing Card + Grid layout and back button.
 - **Do NOT use `$codeRef` with only the module name** (e.g. `"$codeRef": "CertManagerPage"`) for route components in `console-extensions.json`. The Console ExtensionValidator treats that as the **default** export; if the module uses a **named** export (e.g. `export const CertManagerPage`), the build fails with **"Invalid module export ‘default’ in extension [N] property ‘component’"**. Always use the **`moduleName.exportName`** form (e.g. `"$codeRef": "CertManagerPage.CertManagerPage"`, `"$codeRef": "ResourceInspect.ResourceInspect"`).
+- **Do NOT fetch all children upfront for expandable rows.** Children must be fetched lazily only when the parent row is expanded (performance).
+- **Do NOT use PatternFly's `<Table>` with `expandable` variant** for parent-child relationships. Use the custom `ExpandableResourceTable` component that renders a nested child table when expanded.
+- **Do NOT hardcode parent-child matching logic.** Use the `matchField` and `matchType` from the relationship definition to filter children dynamically.
 
 ---
 
@@ -193,6 +203,7 @@ Use the `APIVERSION` and `NAMESPACED` columns as the authoritative source for gr
 | `src/components/crds/Events.ts` | plural → Kind for events |
 | `src/components/OperatorNotInstalled.tsx` | Generic “not installed” empty state |
 | `src/components/<operator-short-name>.css` | Shared operator CSS (cards, tables, buttons, inspect) |
+| `src/components/ExpandableResourceTable.tsx` | Shared expandable table for parent-child relationships (create if relationships defined) |
 | `console-extensions.json` | Routes and nav |
 | `package.json` | `consolePlugin.exposedModules` |
 | `locales/en/plugin__console-plugin-template.json` | English strings |
@@ -299,6 +310,131 @@ Create only if missing. Generic empty state with `EmptyState` (titleText, icon={
 **Actions cell:** Always use the shared `ResourceTableRowActions` component. Do NOT implement custom button logic. The component already has the correct structure with `className` on buttons (not on Link) and `variant` prop for colors.
 
 Do **not** use VirtualizedTable, `<a href>`, or call `useDeleteModal` inside `.map()`.
+
+### Step 6b — Expandable Row Components (if relationships defined)
+
+When one-to-many relationships are specified (e.g., Pipeline → PipelineRuns), create expandable parent tables that show children inline.
+
+#### Expandable Row Behavior
+
+- **Parent row:** Has an expand/collapse chevron icon (▶/▼) as the first cell
+- **Collapsed state:** Shows only the parent resource row (default)
+- **Expanded state:** Shows the parent row plus a nested child table indented below it
+- **Child table:** Filtered to only show children belonging to that parent
+- **No children:** Show italic text "No related <ChildKind>s" when expanded
+- **Loading:** Show spinner in expanded area while fetching children
+
+#### Visual Structure
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ▶ │ pipeline-1      │ default   │ Ready   │ 2h ago  │ Actions │  ← collapsed
+├─────────────────────────────────────────────────────────────────┤
+│ ▼ │ pipeline-2      │ default   │ Ready   │ 1h ago  │ Actions │  ← expanded
+│   └──────────────────────────────────────────────────────────── │
+│     │ Name              │ Status    │ Started   │ Actions │     │  ← child table
+│     │ pipeline-2-run-1  │ Succeeded │ 30m ago   │ ...     │     │
+│     │ pipeline-2-run-2  │ Running   │ 5m ago    │ ...     │     │
+├─────────────────────────────────────────────────────────────────┤
+│ ▶ │ pipeline-3      │ prod      │ Ready   │ 3h ago  │ Actions │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Create `src/components/ExpandableResourceTable.tsx` (shared)
+
+If not already present, create a shared expandable table component:
+
+```tsx
+interface ExpandableResourceTableProps {
+  columns: Array<{ title: string; width?: string }>;
+  rows: Array<{
+    key: string;
+    cells: React.ReactNode[];
+    isExpanded: boolean;
+    onToggle: () => void;
+    expandedContent: React.ReactNode;
+  }>;
+  loading?: boolean;
+  error?: string;
+  emptyStateTitle?: string;
+  emptyStateBody?: string;
+  selectedProject?: string;
+  'data-test'?: string;
+}
+```
+
+#### Structure:
+- First column is always the **expand toggle** (▶/▼ chevron icon)
+- Use `AngleRightIcon` / `AngleDownIcon` from `@patternfly/react-icons`
+- Toggle button: `<Button variant="plain" onClick={onToggle}><Icon /></Button>`
+- Expanded row spans all columns: `<tr><td colSpan={columns.length + 1}>...</td></tr>`
+
+#### Create child table components
+
+For each relationship, the expanded content renders a **child table** filtered to that parent:
+
+```tsx
+// Example: ExpandedPipelineRunsTable.tsx
+interface Props {
+  parentName: string;
+  parentNamespace?: string;
+}
+
+const ExpandedPipelineRunsTable: React.FC<Props> = ({ parentName, parentNamespace }) => {
+  // Fetch children filtered by parent
+  const [children, loaded, error] = useK8sWatchResource<ChildResource[]>({
+    groupVersionKind: ChildGroupVersionKind,
+    namespace: parentNamespace,
+    isList: true,
+  });
+
+  // Filter by matchField (e.g., spec.pipelineRef.name === parentName)
+  const filtered = React.useMemo(() => {
+    if (!children) return [];
+    return children.filter(child => {
+      // matchType: "field" -> check spec.pipelineRef.name
+      // matchType: "ownerRef" -> check metadata.ownerReferences
+      // matchType: "label" -> check metadata.labels
+      return getFieldValue(child, matchField) === parentName;
+    });
+  }, [children, parentName]);
+
+  if (!loaded) return <Spinner size="md" />;
+  if (error) return <Alert variant="warning" isInline title="Error loading children" />;
+  if (filtered.length === 0) return <em>No related {childDisplayName}s</em>;
+
+  return <ResourceTable columns={childColumns} rows={buildChildRows(filtered)} />;
+};
+```
+
+#### Update parent table to use ExpandableResourceTable
+
+Replace `ResourceTable` with `ExpandableResourceTable` for parent kinds that have children:
+
+```tsx
+const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
+
+const rows = parentResources.map(parent => ({
+  key: parent.metadata?.uid || parent.metadata?.name || '',
+  cells: [/* ... parent cells ... */],
+  isExpanded: expandedRows.has(parent.metadata?.uid || ''),
+  onToggle: () => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      const key = parent.metadata?.uid || '';
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  },
+  expandedContent: (
+    <ExpandedChildTable
+      parentName={parent.metadata?.name || ''}
+      parentNamespace={parent.metadata?.namespace}
+    />
+  ),
+}));
+```
 
 ### Step 7 — CSS (`src/components/<operator-short-name>.css`)
 
@@ -428,6 +564,35 @@ Add only missing classes. Use **PatternFly variables only** (no hex). **Required
 
 **Important:** Button colors come from PatternFly's `variant` prop (`variant="primary"` for blue Inspect button, `variant="danger"` for red Delete button). Do NOT add custom background-color/border-color CSS for buttons. The action- classes are only for layout (flex-shrink), not colors.
 
+**Expandable Rows (if relationships defined):**
+```css
+.console-plugin-template__expand-toggle {
+  width: 32px;
+  padding: 0;
+}
+
+.console-plugin-template__expanded-row {
+  background-color: var(--pf-t--global--background--color--secondary--default);
+}
+
+.console-plugin-template__expanded-content {
+  padding: var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--lg);
+  padding-left: var(--pf-t--global--spacer--2xl);
+}
+
+.console-plugin-template__child-table {
+  background-color: var(--pf-t--global--background--color--primary--default);
+  border: 1px solid var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--small);
+}
+
+.console-plugin-template__no-children {
+  font-style: italic;
+  color: var(--pf-t--global--color--nonstatus--gray--default);
+  padding: var(--pf-t--global--spacer--sm);
+}
+```
+
 **Critical:** Never use `co-m-*`, `table-hover`, or inline `style` attributes. All styling via CSS classes with PatternFly variables. Keyframes names must be **kebab-case**.
 
 ### Step 7b — Optional: Overview dashboard
@@ -491,6 +656,17 @@ export const MyOperatorPage: React.FC = () => {
           {pageTitle}
         </Title>
 
+        {/* Fixed namespace info alert (only if operator has a fixed namespace) */}
+        {/* Example for NFD which uses openshift-nfd namespace */}
+        <Alert
+          variant="info"
+          isInline
+          title={t('Fixed Namespace')}
+          style={{ marginBottom: 'var(--pf-t--global--spacer--md)' }}
+        >
+          {t('All <OperatorName> resources are managed in the <namespace> namespace.')}
+        </Alert>
+
         <div className="console-plugin-template__dashboard-cards">
           <Card className="console-plugin-template__resource-card">
             <CardTitle>{t('My Resources')}</CardTitle>
@@ -512,8 +688,9 @@ export default MyOperatorPage;
 - Use **`#ALL_NS#`** (not `'all'`) when comparing `activeNamespace`.
 - Wrap all states in `console-plugin-template__inspect-page` for proper padding.
 - Add prominent **`<Title>`** at the top with bottom margin.
+- **Fixed namespace operators:** If the operator uses a fixed namespace (e.g., `openshift-nfd`), add an info `<Alert>` below the title to inform users. Import `Alert` from `@patternfly/react-core`.
 - Nest Cards inside `console-plugin-template__dashboard-cards` for vertical spacing.
-- Pass **`selectedProject`** only to namespaced tables.
+- Pass **`selectedProject`** only to namespaced tables. For fixed-namespace operators, pass the fixed namespace value directly instead of `selectedProject`.
 - Export both named (`export const`) and default (`export default`).
 
 ### Step 9 — `src/ResourceInspect.tsx` (extend only)
@@ -567,6 +744,8 @@ In `charts/openshift-console-plugin/templates/rbac-clusterroles.yaml`, add or ap
 - [ ] ResourceInspect extended with new DISPLAY_NAMES, getResourceModel, getPagePath (no layout rewrite).
 - [ ] **Route components in `console-extensions.json`** use `$codeRef` as **`moduleName.exportName`** (e.g. `CertManagerPage.CertManagerPage`, `ResourceInspect.ResourceInspect`); no "Invalid module export 'default'" on build.
 - [ ] Locales and RBAC updated; `yarn build-dev` and `yarn lint` pass.
+- [ ] **If relationships defined:** Expandable rows work on parent tables; clicking expand shows filtered child resources inline; children lazy-loaded (fetched only when expanded).
+- [ ] **If fixed namespace:** Info `<Alert>` displayed below page title informing users of the fixed namespace (e.g., "All NFD resources are managed in the openshift-nfd namespace").
 
 **Styling & Visual Quality:**
 - [ ] Page has visible **`<Title>`** component at top with proper spacing (`headingLevel="h1"`, `size="xl"`).
