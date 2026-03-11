@@ -61,6 +61,7 @@ If any input is missing, infer from upstream CRD docs and record inferences in t
 
 ## What NOT to Do
 
+- **Do NOT misuse `useK8sModel` return value.** The hook returns `[model, inFlight]` where `inFlight` is `true` **while loading** and `false` when complete. A common mistake is naming the second parameter `loaded` and checking `if (!loaded) return 'loading'` — this is **backwards** because `!inFlight` is `false` during loading, causing the check to be skipped. The page will either be stuck loading forever or immediately show "not installed". **Correct pattern:** `if (inFlight) return 'loading'`.
 - **Do NOT use `consoleFetchJSON`** for operator/CRD detection; use `useK8sModel` only.
 - **Do NOT use VirtualizedTable** for the operator dashboard resource tables; use **ResourceTable** with `columns` and `rows`.
 - **Do NOT call `useDeleteModal` inside a `.map()` callback.** Use a per-row component (e.g. `ResourceTableRowActions`) that receives the resource and calls `useDeleteModal(resource)`.
@@ -84,7 +85,7 @@ If any input is missing, infer from upstream CRD docs and record inferences in t
 
 ## Critical Rules (read before coding)
 
-1. **Operator detection:** Use **`useK8sModel`** only. `consoleFetchJSON` to CRD/API-group endpoints fails silently due to RBAC in the console proxy.
+1. **Operator detection:** Use **`useK8sModel`** only. `consoleFetchJSON` to CRD/API-group endpoints fails silently due to RBAC in the console proxy. **IMPORTANT:** `useK8sModel` returns `[model, inFlight]` where `inFlight` is `true` **while loading**. Check `if (inFlight) return 'loading'` — NOT `if (!inFlight)`.
 2. **EmptyState (PatternFly 6):** Use `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h2"><EmptyStateBody>...</EmptyStateBody></EmptyState>`.
 3. **`useActiveNamespace`** returns **`#ALL_NS#`** when all namespaces are selected (not `'all'`).
 4. **Inspect route:** Single route with `path: ["/<operator-short-name>/inspect"]`, `exact: false`. Component parses path segments internally.
@@ -155,6 +156,28 @@ mkdir -p src/hooks src/components/crds
 ### Step 2 — `src/hooks/useOperatorDetection.ts`
 
 Use `useK8sModel` with `{ group, version, kind }` for the primary resource. Export `OperatorStatus`, `OperatorInfo`, `<OPERATOR>_OPERATOR_INFO`, and `useOperatorDetection()`. If the file exists, add the new operator's info and extend the hook.
+
+**⚠️ CRITICAL: Correct `useK8sModel` usage:**
+```typescript
+export function useOperatorDetection(operatorInfo: OperatorInfo): OperatorStatus {
+  const [model, inFlight] = useK8sModel({
+    group: operatorInfo.group,
+    version: operatorInfo.version,
+    kind: operatorInfo.kind,
+  });
+
+  // inFlight is TRUE while loading, FALSE when complete
+  if (inFlight) {
+    return 'loading';
+  }
+
+  if (model) {
+    return 'installed';
+  }
+
+  return 'not-installed';
+}
+```
 
 ### Step 3 — `src/components/crds/index.ts`
 

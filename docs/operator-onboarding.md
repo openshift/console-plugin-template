@@ -130,6 +130,7 @@ Field 6 (API group verification) must NOT be inferred — it must be obtained fr
 
 ## What NOT to Do
 
+- **Do NOT misuse `useK8sModel` return value.** The hook returns `[model, inFlight]` where `inFlight` is `true` **while loading** and `false` when complete. A common mistake is naming the second parameter `loaded` and checking `if (!loaded) return 'loading'` — this is **backwards** because `!inFlight` is `false` during loading, causing the check to be skipped. The page will either be stuck loading forever or immediately show "not installed". **Correct pattern:** `if (inFlight) return 'loading'`. See Step 2 for the correct implementation.
 - **Do NOT assume API groups from upstream documentation.** OpenShift-packaged operators routinely use different groups than the community upstream (e.g. `nfd.openshift.io` instead of `nfd.kubernetes.io`, `*.k8s-sigs.io` instead of `*.kubernetes.io`). Always run `oc api-resources | grep -i <keyword>` on the actual cluster and use the `APIVERSION` column as the authoritative source. Wrong groups cause `useK8sModel` to return `null`, which shows "Operator not installed" even when the operator is running.
 - **Do NOT assume cluster-scoped vs namespaced** from upstream docs. Check the `NAMESPACED` column in `oc api-resources` output — the same CRD kind can be namespaced in one distribution and cluster-scoped in another. Namespaced resources require a `selectedProject` prop and a Namespace column in the table; cluster-scoped resources do not.
 - **Do NOT use `consoleFetchJSON`** for operator/CRD detection; use `useK8sModel` only.
@@ -166,7 +167,7 @@ Field 6 (API group verification) must NOT be inferred — it must be obtained fr
    oc api-resources | grep -i <operator-keyword>
    ```
    Use the `APIVERSION` column for the correct `group/version` and the `NAMESPACED` column for scope. Do not trust upstream docs or OperatorHub listings for these values — OpenShift distributions frequently use different API groups (e.g. `nfd.openshift.io/v1` instead of `nfd.kubernetes.io/v1`). Wrong values will cause `useK8sModel` to return `null`, showing "Operator not installed" even when the operator is installed and running.
-1. **Operator detection:** Use **`useK8sModel`** only. `consoleFetchJSON` to CRD/API-group endpoints fails silently due to RBAC in the console proxy.
+1. **Operator detection:** Use **`useK8sModel`** only. `consoleFetchJSON` to CRD/API-group endpoints fails silently due to RBAC in the console proxy. **IMPORTANT:** `useK8sModel` returns `[model, inFlight]` where `inFlight` is `true` **while loading**. Check `if (inFlight) return 'loading'` — NOT `if (!inFlight)`.
 2. **EmptyState (PatternFly 6):** Use `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h2"><EmptyStateBody>...</EmptyStateBody></EmptyState>`.
 3. **`useActiveNamespace`** returns **`#ALL_NS#`** when all namespaces are selected (not `'all'`).
 4. **Inspect route:** Single route with `path: ["/<operator-short-name>/inspect"]`, `exact: false`. Component parses path segments internally.
