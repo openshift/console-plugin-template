@@ -83,6 +83,28 @@ This will run the OpenShift console in a container connected to the cluster
 you've logged into. The plugin HTTP server runs on port 9001 with CORS enabled.
 Navigate to <http://localhost:9000/example> to see the running plugin.
 
+#### Adding an operator dashboard
+
+This plugin supports generating a full operator dashboard — including resource tables, an inspect detail page, sidebar navigation, and RBAC — for any operator installed on your cluster using an AI coding assistant (e.g. Cursor, Copilot, or similar).
+
+The full specification lives in [`promts/operator-onboarding.md`](promts/operator-onboarding.md). Copy the prompt template below, replace `[OPERATOR_NAME]` with the exact display name of your operator (e.g. `"Red Hat OpenShift Pipelines"`, `"Node Feature Discovery Operator"`), fill in the remaining fields, and send it to your AI assistant. It will implement all the required files automatically.
+
+```text
+Operator name: [OPERATOR_NAME]
+
+Follow the implementation specification in promts/operator-onboarding.md exactly.
+Start implementation immediately. Do not ask for confirmation.
+```
+
+> **Tip:** Fields 1–5 can be inferred by the AI from upstream CRD docs if you don't know them. Field 6 (the `oc api-resources` output) **must** be obtained from your actual cluster — OpenShift-packaged operators frequently register CRDs under different API groups than the community upstream (e.g. `nfd.openshift.io` instead of `nfd.kubernetes.io`). Using the wrong group causes the dashboard to show "Operator not installed" even when the operator is running.
+
+**Example — operators already added in this repo:**
+
+| Operator | Dashboard path | Prompt used |
+|---|---|---|
+| Red Hat OpenShift Pipelines | `/openshift-pipelines` | `oc api-resources \| grep -i pipeline` |
+| Node Feature Discovery Operator | `/nfd` | `oc api-resources \| grep -i feature` |
+
 #### Running start-console with Apple silicon and podman
 
 If you are using podman on a Mac with Apple silicon, `yarn run start-console`
