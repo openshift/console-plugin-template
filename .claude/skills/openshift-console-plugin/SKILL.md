@@ -862,6 +862,21 @@ const NoResourcesFound: React.FC = () => (
 | Domain-specific widgets | Consider first | ✅ If no PF equivalent |
 
 ### CSS Best Practices
+
+**⚠️ NEVER use inline styles - Always use CSS classes or PatternFly props**
+
+Inline styles should be avoided in OpenShift Console plugins for several critical reasons:
+
+#### Why Avoid Inline Styles?
+1. **Theming Breaks**: Inline styles override CSS custom properties, breaking dark/light theme switching
+2. **Responsiveness**: Cannot use media queries or responsive design patterns
+3. **Accessibility**: Harder to implement focus states, high contrast modes, and screen reader optimizations
+4. **Maintenance**: Difficult to update styling across components
+5. **Performance**: Inline styles prevent CSS caching and optimization
+6. **Consistency**: Prevents using PatternFly design tokens and variables
+7. **CSP Violations**: May violate Content Security Policy rules
+
+#### ✅ CORRECT Styling Approaches
 ```css
 /* Use plugin prefix for all custom classes */
 .my-console-plugin__container {
@@ -888,7 +903,32 @@ const NoResourcesFound: React.FC = () => (
 }
 ```
 
-### Component Styling
+#### ❌ WRONG - Avoid These Patterns
+```typescript
+// DON'T DO THIS - Inline styles break theming
+const BadComponent: React.FC = () => (
+  <div style={{ 
+    padding: '16px',           // Use CSS classes instead
+    backgroundColor: '#f0f0f0', // Breaks dark theme
+    color: 'red'               // Use PatternFly color props
+  }}>
+    Content
+  </div>
+);
+
+// DON'T DO THIS - Conditional inline styles
+const AnotherBadComponent: React.FC = ({ isError }) => (
+  <span style={{ 
+    color: isError ? '#d73502' : '#28a745' // Use CSS classes + conditional className
+  }}>
+    Status
+  </span>
+);
+```
+
+### Component Styling - Correct Approaches
+
+#### ✅ Method 1: CSS Classes with Conditional Styling
 ```typescript
 import React from 'react';
 import {
@@ -901,23 +941,145 @@ import {
 } from '@patternfly/react-core';
 import './MyComponent.css';
 
-const MyComponent: React.FC = () => {
+interface MyComponentProps {
+  status: 'running' | 'failed' | 'pending';
+  isHighlighted?: boolean;
+}
+
+const MyComponent: React.FC<MyComponentProps> = ({ status, isHighlighted }) => {
+  // Use conditional className instead of inline styles
+  const containerClassName = [
+    'my-console-plugin__status-card',
+    isHighlighted && 'my-console-plugin__status-card--highlighted'
+  ].filter(Boolean).join(' ');
+
   return (
-    <Card className="my-console-plugin__status-card">
+    <Card className={containerClassName}>
       <CardTitle>Status Overview</CardTitle>
       <CardBody>
         <Flex>
           <FlexItem>
-            <Label color="green">Running</Label>
+            <span className={`my-console-plugin__status my-console-plugin__status--${status}`}>
+              {status}
+            </span>
           </FlexItem>
           <FlexItem>
-            <Label color="red">Failed</Label>
+            {/* Use PatternFly color props when available */}
+            <Label color={status === 'running' ? 'green' : status === 'failed' ? 'red' : 'grey'}>
+              {status}
+            </Label>
           </FlexItem>
         </Flex>
       </CardBody>
     </Card>
   );
 };
+
+export default MyComponent;
+```
+
+#### ✅ Method 2: PatternFly Component Props
+```typescript
+import React from 'react';
+import {
+  Card,
+  CardTitle,
+  CardBody,
+  Alert,
+  Button,
+  Flex,
+  FlexItem
+} from '@patternfly/react-core';
+
+const MyAlertComponent: React.FC<{ hasError: boolean }> = ({ hasError }) => (
+  <Card>
+    <CardBody>
+      {/* Use PatternFly variant props instead of inline styles */}
+      <Alert 
+        variant={hasError ? 'danger' : 'success'} 
+        title={hasError ? 'Error occurred' : 'Success'}
+      />
+      <Flex>
+        <FlexItem>
+          {/* Use PatternFly size and variant props */}
+          <Button 
+            variant={hasError ? 'danger' : 'primary'}
+            size="sm"
+          >
+            {hasError ? 'Retry' : 'Continue'}
+          </Button>
+        </FlexItem>
+      </Flex>
+    </CardBody>
+  </Card>
+);
+```
+
+#### ✅ Method 3: CSS-in-JS Alternative (Use Sparingly)
+```typescript
+import React from 'react';
+import { Card } from '@patternfly/react-core';
+
+// If CSS-in-JS is absolutely necessary, use CSS custom properties
+const MyDynamicComponent: React.FC<{ progress: number }> = ({ progress }) => {
+  // Use CSS custom properties, not direct style values
+  const cardStyle = {
+    '--my-progress-width': `${progress}%`
+  } as React.CSSProperties;
+
+  return (
+    <Card className="my-console-plugin__progress-card" style={cardStyle}>
+      {/* Progress bar uses CSS custom property in stylesheet */}
+      <div className="my-console-plugin__progress-bar" />
+    </Card>
+  );
+};
+```
+
+#### CSS File (MyComponent.css)
+```css
+/* Support the component styling above */
+.my-console-plugin__status-card {
+  margin-bottom: var(--pf-v6-global-spacer-md);
+}
+
+.my-console-plugin__status-card--highlighted {
+  border: 2px solid var(--pf-v6-global-palette--blue-300);
+  box-shadow: var(--pf-v6-global-box-shadow-md);
+}
+
+.my-console-plugin__status {
+  font-weight: var(--pf-v6-global-FontWeight-bold);
+  padding: var(--pf-v6-global-spacer-xs);
+  border-radius: var(--pf-v6-global-BorderRadius-sm);
+}
+
+.my-console-plugin__status--running {
+  background-color: var(--pf-v6-global-palette--green-50);
+  color: var(--pf-v6-global-palette--green-700);
+}
+
+.my-console-plugin__status--failed {
+  background-color: var(--pf-v6-global-palette--red-50);
+  color: var(--pf-v6-global-palette--red-700);
+}
+
+.my-console-plugin__status--pending {
+  background-color: var(--pf-v6-global-palette--orange-50);
+  color: var(--pf-v6-global-palette--orange-700);
+}
+
+/* CSS custom property approach for dynamic values */
+.my-console-plugin__progress-card {
+  position: relative;
+}
+
+.my-console-plugin__progress-bar {
+  width: var(--my-progress-width);
+  height: 4px;
+  background-color: var(--pf-v6-global-palette--blue-300);
+  transition: width 0.3s ease;
+}
 ```
 
 ## 8. Webpack and Module Federation
