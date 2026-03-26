@@ -15,7 +15,6 @@ my-console-plugin/
 ├── src/
 │   ├── components/          # React components
 │   ├── types/              # TypeScript type definitions
-│   ├── utils/              # Utility functions
 │   └── index.ts            # Entry point
 ├── console-extensions.json  # Plugin extension declarations
 ├── package.json            # Dependencies and plugin metadata
@@ -41,7 +40,7 @@ my-console-plugin/
       "MyDetailsPage": "./components/MyDetailsPage"
     },
     "dependencies": {
-      "@console/pluginAPI": "*"
+      "@console/pluginAPI": "^4.21.0"
     }
   }
 }
@@ -457,7 +456,7 @@ const useMetrics = (resource: MyResource) => {
 
 ### Translation Setup
 ```typescript
-// src/utils/i18n.ts
+// src/i18n.ts
 import { useTranslation } from 'react-i18next';
 
 export const useMyPluginTranslation = () => {
@@ -687,25 +686,56 @@ describe('My Feature', () => {
 ## 10. Development Workflow
 
 ### Local Development
+
+**⚠️ IMPORTANT: Plugin Testing Requirements**
+
+To test your console plugin, you MUST run both the development server AND the OpenShift Console container. Running only the development server (`npm run start`) is insufficient for testing because:
+
+1. **Plugin Loading**: The console must load your plugin via module federation
+2. **Authentication**: Console APIs require proper authentication context
+3. **Extension Points**: Navigation items, routes, and other extensions only work within the full console
+4. **K8s API Access**: Resource operations require the console's proxy to the cluster APIs
+
+#### Complete Development Setup
 ```bash
-# Install dependencies
+# 1. Install dependencies
 npm install
 
-# Start development server
+# 2. Login to OpenShift cluster (REQUIRED)
+oc login https://your-cluster-api:6443
+
+# 3. Start plugin development server (serves plugin assets)
 npm run start
+# This starts webpack dev server on http://localhost:9001
 
-# Start OpenShift Console (requires cluster login)
+# 4. Start OpenShift Console with plugin enabled (REQUIRED FOR TESTING)
 npm run start-console
+# This starts console container on http://localhost:9000
+# The console will load your plugin from the dev server
 
-# Run tests
-npm run test
-
-# Run Cypress tests
-npm run test-cypress-headless
-
-# Lint and format code
-npm run lint
+# 5. Navigate to http://localhost:9000 to test your plugin
 ```
+
+#### Testing Workflow
+```bash
+# After making changes to your plugin:
+# 1. Webpack dev server automatically rebuilds (from step 3)
+# 2. Refresh browser at http://localhost:9000 to see changes
+# 3. Check browser console for any plugin loading errors
+
+# Run automated tests
+npm run test                    # Unit tests
+npm run test-cypress-headless   # E2E tests
+
+# Code quality checks
+npm run lint                    # ESLint + Stylelint
+```
+
+#### Troubleshooting Plugin Loading
+- Check browser dev tools Network tab for plugin loading errors
+- Verify `console-extensions.json` matches your `exposedModules` in package.json
+- Ensure your components are properly exported
+- Check the console container logs for plugin registration errors
 
 ### Development Scripts
 ```json
