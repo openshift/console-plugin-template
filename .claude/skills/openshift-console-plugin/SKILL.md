@@ -400,20 +400,167 @@ export interface Condition {
 
 ## 5. State Management and Data Fetching
 
-### Using K8s Watch Resources
+### Using K8s SDK Helpers for Resource Operations
+
+**⚠️ CRITICAL: Always use SDK helpers for Kubernetes resource operations**
+
+**DO NOT construct API paths manually**. The console SDK provides helper functions that handle authentication, proper URL construction, error handling, and caching. Always use these instead of raw fetch calls or manual path construction.
+
+#### Core SDK Helper Functions
+```typescript
+import { 
+  useK8sWatchResource,
+  k8sGet,
+  k8sCreate, 
+  k8sUpdate,
+  k8sDelete,
+  k8sList,
+  consoleFetch
+} from '@openshift-console/dynamic-plugin-sdk';
+```
+
+#### API Groups and Versions - Critical Configuration
+
+**IMPORTANT**: API groups and versions must be specified as separate properties, not as combined strings.
+
+```typescript
+// ✅ CORRECT - Separate group and version properties
+const resourceModel = {
+  groupVersionKind: {
+    group: 'apps',           // Separate property
+    version: 'v1',           // Separate property  
+    kind: 'Deployment'
+  }
+};
+
+// ❌ WRONG - Do not combine group/version as single string
+const badModel = {
+  groupVersionKind: {
+    group: 'apps/v1',        // WRONG - don't combine
+    version: '',
+    kind: 'Deployment'
+  }
+};
+```
+
+#### Mapping YAML apiVersion to SDK Properties
+When you see a YAML resource with `apiVersion: "apps/v1"`, map it to SDK properties:
+
+```yaml
+# YAML resource shows:
+apiVersion: apps/v1
+kind: Deployment
+```
+
+```typescript
+// Maps to SDK configuration:
+const deploymentModel = {
+  groupVersionKind: {
+    group: 'apps',           // Everything before the '/'
+    version: 'v1',           // Everything after the '/'  
+    kind: 'Deployment'
+  }
+};
+
+// Special case: Core resources (no group in YAML)
+# YAML: apiVersion: v1
+# Maps to: group: '', version: 'v1'
+```
+
+#### Watch Resources with useK8sWatchResource
 ```typescript
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 
 const useMyResources = (namespace?: string) => {
   return useK8sWatchResource<MyResource[]>({
     groupVersionKind: {
-      group: 'my-group.io',
-      version: 'v1', 
+      group: 'my-group.io',    // Correct separate properties
+      version: 'v1',
       kind: 'MyResource',
     },
     isList: true,
-    namespace,
+    namespace,                 // Optional namespace filter
+    optional: true,            // Won't fail if CRD doesn't exist
   });
+};
+
+// Usage in component
+const MyComponent: React.FC = () => {
+  const [resources, loaded, loadError] = useMyResources('my-namespace');
+  
+  if (loadError) {
+    return <div>Error loading resources: {loadError.message}</div>;
+  }
+  
+  if (!loaded) {
+    return <div>Loading...</div>;
+  }
+  
+  return <div>{resources.length} resources found</div>;
+};
+```
+
+#### One-time Resource Fetching with k8sGet
+```typescript
+import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+
+const fetchSpecificResource = async (name: string, namespace: string) => {
+  try {
+    const resource = await k8sGet<MyResource>({
+      model: {
+        groupVersionKind: {
+          group: 'my-group.io',
+          version: 'v1', 
+          kind: 'MyResource',
+        }
+      },
+      name,
+      ns: namespace
+    });
+    return resource;
+  } catch (error) {
+    console.error('Failed to fetch resource:', error);
+    throw error;
+  }
+};
+```
+
+#### Common API Group Examples
+```typescript
+// Core Kubernetes resources (no group)
+const podModel = {
+  groupVersionKind: {
+    group: '',               // Empty string for core resources
+    version: 'v1',
+    kind: 'Pod'
+  }
+};
+
+// Apps group
+const deploymentModel = {
+  groupVersionKind: {
+    group: 'apps',
+    version: 'v1', 
+    kind: 'Deployment'
+  }
+};
+
+// OpenShift specific
+const routeModel = {
+  groupVersionKind: {
+    group: 'route.openshift.io',
+    version: 'v1',
+    kind: 'Route'  
+  }
+};
+
+// Custom Resource
+const myResourceModel = {
+  groupVersionKind: {
+    group: 'example.com',
+    version: 'v1alpha1',
+    kind: 'MyCustomResource'
+  }
 };
 ```
 
