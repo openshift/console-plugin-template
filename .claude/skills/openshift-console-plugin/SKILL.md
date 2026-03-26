@@ -646,7 +646,220 @@ locales/
 }
 ```
 
-## 7. Styling with PatternFly
+## 7. UI Design with PatternFly
+
+**⚠️ CRITICAL: Always prefer PatternFly components over custom implementations**
+
+The OpenShift Console uses PatternFly as its design system. Using PatternFly components ensures consistency, accessibility, theming support, and reduces maintenance burden. Avoid creating custom components when PatternFly alternatives exist.
+
+### Why Use PatternFly Components
+
+1. **Consistency**: Matches OpenShift Console's look and feel
+2. **Accessibility**: Built-in ARIA attributes and keyboard navigation
+3. **Theming**: Automatic dark/light mode support
+4. **Responsive**: Mobile and desktop optimized
+5. **Maintenance**: Updates handled by PatternFly team
+6. **Performance**: Optimized and tested components
+
+### Core PatternFly Components for Console Plugins
+
+#### Dashboard and Layout Components
+```typescript
+import {
+  Page,           // Main page wrapper
+  PageSection,    // Content sections
+  Card,          // Content cards
+  CardTitle,     // Card headers
+  CardBody,      // Card content
+  Gallery,       // Responsive grid layout
+  GalleryItem,   // Grid items
+  Grid,          // Manual grid system
+  GridItem,      // Grid cells
+  Flex,          // Flexbox layout
+  FlexItem,      // Flex children
+  Stack,         // Vertical stacking
+  StackItem      // Stack children
+} from '@patternfly/react-core';
+
+// Example: Dashboard with cards
+const MyDashboard: React.FC = () => (
+  <Page>
+    <PageSection variant="light">
+      <Gallery hasGutter>
+        <GalleryItem>
+          <Card>
+            <CardTitle>Cluster Status</CardTitle>
+            <CardBody>Content here</CardBody>
+          </Card>
+        </GalleryItem>
+        <GalleryItem>
+          <Card>
+            <CardTitle>Resource Usage</CardTitle>
+            <CardBody>More content</CardBody>
+          </Card>
+        </GalleryItem>
+      </Gallery>
+    </PageSection>
+  </Page>
+);
+```
+
+#### Data Display Components
+```typescript
+import {
+  Table,           // Data tables
+  Thead,           // Table header
+  Tbody,           // Table body
+  Tr,              // Table rows
+  Th,              // Header cells
+  Td,              // Data cells
+  DataList,        // Alternative to tables
+  DataListItem,    // List items
+  DescriptionList, // Key-value pairs
+  Label,           // Status labels
+  Badge,           // Count indicators
+  Progress,        // Progress bars
+  Spinner          // Loading indicators
+} from '@patternfly/react-core';
+
+// Example: Resource status display
+const ResourceStatus: React.FC<{ resource }> = ({ resource }) => (
+  <Card>
+    <CardBody>
+      <DescriptionList>
+        <DescriptionListGroup>
+          <DescriptionListTerm>Status</DescriptionListTerm>
+          <DescriptionListDescription>
+            <Label color={resource.status === 'Ready' ? 'green' : 'red'}>
+              {resource.status}
+            </Label>
+          </DescriptionListDescription>
+        </DescriptionListGroup>
+        <DescriptionListGroup>
+          <DescriptionListTerm>Progress</DescriptionListTerm>
+          <DescriptionListDescription>
+            <Progress value={resource.progress} />
+          </DescriptionListDescription>
+        </DescriptionListGroup>
+      </DescriptionList>
+    </CardBody>
+  </Card>
+);
+```
+
+#### Navigation and Actions
+```typescript
+import {
+  Tabs,            // Tab navigation
+  Tab,             // Individual tabs
+  TabTitleText,    // Tab labels
+  Breadcrumb,      // Navigation breadcrumbs
+  BreadcrumbItem,  // Breadcrumb links
+  Button,          // Action buttons
+  Dropdown,        // Action menus
+  DropdownItem,    // Menu items
+  KebabToggle,     // Three-dot menu
+  Toolbar,         // Action toolbars
+  ToolbarContent,  // Toolbar sections
+  ToolbarGroup,    // Toolbar groups
+  ToolbarItem      // Individual tools
+} from '@patternfly/react-core';
+
+// Example: Resource actions toolbar
+const ResourceActions: React.FC = () => (
+  <Toolbar>
+    <ToolbarContent>
+      <ToolbarGroup>
+        <ToolbarItem>
+          <Button variant="primary">Create</Button>
+        </ToolbarItem>
+        <ToolbarItem>
+          <Dropdown
+            toggle={<KebabToggle />}
+            dropdownItems={[
+              <DropdownItem key="edit">Edit</DropdownItem>,
+              <DropdownItem key="delete">Delete</DropdownItem>
+            ]}
+          />
+        </ToolbarItem>
+      </ToolbarGroup>
+    </ToolbarContent>
+  </Toolbar>
+);
+```
+
+#### Forms and Input Components
+```typescript
+import {
+  Form,            // Form wrapper
+  FormGroup,       // Form sections
+  TextInput,       // Text fields
+  Select,          // Dropdowns
+  SelectOption,    // Dropdown options
+  Checkbox,        // Checkboxes
+  Radio,           // Radio buttons
+  Switch,          // Toggle switches
+  FormHelperText,  // Help text
+  Alert            // Validation messages
+} from '@patternfly/react-core';
+
+// Example: Configuration form
+const ConfigForm: React.FC = () => (
+  <Form>
+    <FormGroup label="Resource Name" isRequired>
+      <TextInput id="name" />
+      <FormHelperText>Must be unique within namespace</FormHelperText>
+    </FormGroup>
+    <FormGroup label="Enable Feature">
+      <Switch id="feature-toggle" />
+    </FormGroup>
+  </Form>
+);
+```
+
+#### Status and Feedback Components
+```typescript
+import {
+  Alert,              // Notifications
+  AlertGroup,         // Alert containers
+  Banner,             // Page banners
+  EmptyState,         // No data states
+  EmptyStateBody,     // Empty state content
+  EmptyStateIcon,     // Empty state icons
+  Modal,              // Dialog modals
+  ModalVariant,       // Modal types
+  NotificationDrawer, // Notification panel
+  Tooltip             // Help tooltips
+} from '@patternfly/react-core';
+
+// Example: Empty state for resource lists
+const NoResourcesFound: React.FC = () => (
+  <EmptyState>
+    <EmptyStateIcon icon={CubesIcon} />
+    <Title headingLevel="h4">No resources found</Title>
+    <EmptyStateBody>
+      Create your first resource to get started.
+    </EmptyStateBody>
+    <Button variant="primary">Create Resource</Button>
+  </EmptyState>
+);
+```
+
+### PatternFly vs Custom Components Decision Guide
+
+| Use Case | Prefer PatternFly | Consider Custom |
+|----------|-------------------|-----------------|
+| Data tables | ✅ Table component | ❌ |
+| Status displays | ✅ Label, Badge | ❌ |
+| Forms | ✅ Form components | ❌ |
+| Navigation | ✅ Tabs, Breadcrumb | ❌ |
+| Cards/panels | ✅ Card component | ❌ |
+| Buttons/actions | ✅ Button, Dropdown | ❌ |
+| Loading states | ✅ Spinner, Progress | ❌ |
+| Empty states | ✅ EmptyState | ❌ |
+| Modals/dialogs | ✅ Modal | ❌ |
+| Unique visualizations | Consider first | ✅ Charts, diagrams |
+| Domain-specific widgets | Consider first | ✅ If no PF equivalent |
 
 ### CSS Best Practices
 ```css
