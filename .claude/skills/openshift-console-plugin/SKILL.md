@@ -985,6 +985,8 @@ export default config;
 
 ## 9. Testing Strategies
 
+**Code Quality First**: Always run `yarn lint` before testing and committing. This catches style issues, potential bugs, and accessibility violations before they reach testing or production.
+
 ### Unit Testing with Jest
 ```typescript
 // src/components/__tests__/MyPage.test.tsx
@@ -1087,9 +1089,44 @@ npm run start-console
 npm run test                    # Unit tests
 npm run test-cypress-headless   # E2E tests
 
-# Code quality checks
-npm run lint                    # ESLint + Stylelint
+# Code quality checks (REQUIRED before committing)
+npm run lint                    # ESLint + Stylelint with auto-fix
 ```
+
+#### Pre-Commit Checklist
+
+**⚠️ ALWAYS run the linter before committing changes**
+
+```bash
+# Essential pre-commit workflow:
+# 1. Run linter (fixes most issues automatically)
+yarn lint
+
+# 2. Review any remaining linter errors that couldn't be auto-fixed
+# 3. Fix any TypeScript compilation errors
+yarn tsc --noEmit
+
+# 4. Test your changes work in the browser
+# 5. Stage and commit your changes
+git add .
+git commit -m "Your commit message"
+```
+
+**Why lint before committing?**
+- **Consistency**: Maintains consistent code style across the project
+- **Quality**: Catches potential bugs and code issues early
+- **CI/CD**: Prevents build failures in continuous integration
+- **Collaboration**: Makes code reviews easier and more focused
+- **Accessibility**: ESLint rules help catch accessibility issues
+- **Performance**: Identifies potential performance anti-patterns
+
+**What the linter checks:**
+- Code formatting (Prettier)
+- JavaScript/TypeScript best practices (ESLint)
+- CSS style consistency (Stylelint)
+- Accessibility violations
+- Potential security issues
+- Import/export consistency
 
 #### Troubleshooting Plugin Loading
 - Check browser dev tools Network tab for plugin loading errors
