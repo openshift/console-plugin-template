@@ -3,6 +3,22 @@
 
 Copy the template, fill in operator details, run it. Works on a clean repo (after `git stash`) or with existing operators already added.
 
+## Mandatory two-phase workflow (AI / Cursor)
+
+This document defines **two phases in one task**. **Do not stop after Phase 1.**
+
+| Phase | Scope | Gate |
+|-------|--------|------|
+| **Phase 1** | Operator dashboard implementation (Steps 0–13, Validation for build/lint) | `yarn build-dev` and `yarn lint` succeed |
+| **Phase 2** | Frontend **unit tests** (Jest + RTL) for the new operator and shared pieces touched in Phase 1 | `yarn test` and **`yarn lint`** succeed |
+
+**Rules for agents:**
+
+1. After Phase 1 passes its gate, **immediately continue** with Phase 2 in the **same session**—do not wait for a separate user message, a second prompt, or “run the unit-test template later.”
+2. If the repo lacks Jest (`jest.config.cjs`, `src/setupTests.ts`, `yarn test`), **add or restore that tooling first**, then write tests (see [Phase 2](#phase-2--unit-tests-for-a-newly-added-operator-dashboard-after-phase-1)).
+3. Treat Phase 2 as **blocked** until Phase 1 is done (routes, components, and extensions for the operator must exist).
+4. The task is **complete** only when **both** phases pass their gates. The final summary must include Phase 1 **and** Phase 2 validation.
+
 ---
 
 ## End Goal
@@ -13,6 +29,7 @@ Copy the template, fill in operator details, run it. Works on a clean repo (afte
 - **Resource detail dashboard (inspect page):** Clicking Inspect opens `/<operator-short-name>/inspect/<plural>/[namespace/]<name>`. The **ResourceInspect** component (see [Existing shared components](#existing-shared-components)) shows Metadata, Labels, Annotations, Specification, Status, and Events in a **Card + Grid** layout with a back button—no tabs. When adding a new operator, **extend** ResourceInspect’s maps and models; do not replace its layout or structure.
 - **Optional:** Overview dashboard (summary count cards above tables) per Step 7b. Not required.
 - **Expandable rows (one-to-many relationships):** Parent resources can have expandable rows showing related child resources inline. When a relationship is defined, the parent table row has an expand/collapse toggle; expanding reveals a nested table of child resources filtered by that parent. See **Step 6b** for implementation details.
+- **Phase 2 (same task):** After Phase 1 succeeds, add **unit tests** per [Phase 2](#phase-2--unit-tests-for-a-newly-added-operator-dashboard-after-phase-1). **Not optional** when following this document in full.
 
 ---
 
@@ -124,6 +141,17 @@ Follow the implementation specification in this document exactly.
 Start implementation immediately. Do not ask for confirmation.
 If any input is missing EXCEPT for field 6, infer from upstream CRD docs and record inferences in the final summary.
 Field 6 (API group verification) must NOT be inferred — it must be obtained from the actual cluster.
+
+--- Phase 1 + Phase 2 (mandatory) ---
+
+After Phase 1 implementation:
+
+1) Confirm **Phase 1 gate:** `yarn build-dev` and `yarn lint` pass.
+2) **Without stopping or ending the turn**, proceed to **Phase 2:** add or extend Jest + React Testing Library tests for this operator (page, tables, ResourceTable / ExpandableResourceTable / ResourceTableRowActions, useOperatorDetection, helpers). If `yarn test` is not defined, add Jest config, `setupTests.ts`, `src/test-utils/dataTestQuery.ts`, and test scripts per Phase 2 in this document.
+3) Confirm **Phase 2 gate:** `yarn test` and `yarn lint` pass.
+4) In the **final summary**, report Phase 1 and Phase 2 files changed, validation commands run, and test coverage overview.
+
+Do NOT treat Phase 2 as a separate follow-up task or optional prompt—execute it in the same run once Phase 1 succeeds.
 ```
 
 ---
@@ -156,6 +184,7 @@ Field 6 (API group verification) must NOT be inferred — it must be obtained fr
 - **Do NOT fetch all children upfront for expandable rows.** Children must be fetched lazily only when the parent row is expanded (performance).
 - **Do NOT use PatternFly's `<Table>` with `expandable` variant** for parent-child relationships. Use the custom `ExpandableResourceTable` component that renders a nested child table when expanded.
 - **Do NOT hardcode parent-child matching logic.** Use the `matchField` and `matchType` from the relationship definition to filter children dynamically.
+- **Do NOT end the task after Phase 1 only.** When using this document for a full operator add, you must run **Phase 2** (unit tests) in the **same session** after `yarn build-dev` and `yarn lint` pass, and you must not defer tests unless the user explicitly asks for **Phase 1 only** (narrow scope).
 
 ---
 
@@ -726,10 +755,17 @@ In `charts/openshift-console-plugin/templates/rbac-clusterroles.yaml`, add or ap
 
 ## Validation
 
+**Phase 1 (implementation)**
+
 - **Before coding:** Confirm `oc api-resources | grep -i <keyword>` output has been obtained and used for all API groups, versions, and namespaced/cluster-scoped classification.
 - Run **`yarn build-dev`**. It must succeed (ignore pre-existing `node_modules` errors). If you see **"Invalid module export 'default' in extension [N] property 'component'"**, fix `console-extensions.json`: change each route `component` `$codeRef` from `"ModuleName"` to `"ModuleName.ExportName"` (e.g. `CertManagerPage.CertManagerPage`).
 - Run **`yarn lint`** (eslint + stylelint). Fix any issues in `src/` or CSS.
 - **Runtime check:** Navigate to `/<operator-short-name>` in the console. If it shows "Operator not installed" when the operator is installed, the API group or version is wrong. Re-run `oc api-resources` and compare with the values used in the CRD models and `useOperatorDetection`.
+
+**Phase 2 (unit tests)—required after Phase 1 passes**
+
+- Run **`yarn test`** (add the script and Jest setup if missing; see [Phase 2](#phase-2--unit-tests-for-a-newly-added-operator-dashboard-after-phase-1)). All suites must pass.
+- Run **`yarn lint`** again after adding tests; fix new issues in test files and `src/`.
 
 ---
 
@@ -762,14 +798,21 @@ In `charts/openshift-console-plugin/templates/rbac-clusterroles.yaml`, add or ap
 - [ ] Button className on `<Button>` component (not on wrapping `<Link>`); colors from `variant` prop only.
 - [ ] Dashboard cards have vertical spacing via `gap` in `console-plugin-template__dashboard-cards` wrapper.
 
+**Phase 2 — Unit tests (required for full operator add):**
+- [ ] Jest + RTL wired up if the repo had no `yarn test` (`jest.config.cjs`, `src/setupTests.ts`, scripts in `package.json`, ESLint `jest` env for `*.test.{ts,tsx}`).
+- [ ] Tests added under `src/**/__tests__/**` for operator page (loading / not-installed / installed), tables, `ResourceTable`, `ExpandableResourceTable`, `ResourceTableRowActions`, `useOperatorDetection`, and shared helpers as applicable.
+- [ ] **`yarn test`** passes; **`yarn lint`** passes after tests.
+
 ---
 
 ## Final Response Format
 
-1. **Files changed** (created/updated).
-2. **CRDs/resources** used (and any inferred values).
-3. **Validation** (build + lint).
+1. **Phase 1 — Files changed** (created/updated) and **CRDs/resources** used (and any inferred values).
+2. **Phase 2 — Test files** created/updated and short **coverage summary** (components/states covered).
+3. **Validation:** `yarn build-dev`, `yarn lint`, **`yarn test`** (Phase 2), and optional runtime note.
 4. **Assumptions / risks.**
+
+If Phase 2 was legitimately skipped (user asked for Phase 1 only), state that explicitly and list what remains for Phase 2.
 
 ---
 
@@ -929,3 +972,98 @@ if (loading) {
   padding: 16px;
 }
 ```
+
+---
+
+## Phase 2 — Unit tests for a newly added operator dashboard (after Phase 1)
+
+**Workflow (mandatory for full runs):** As soon as Phase 1 meets its gate (`yarn build-dev` + `yarn lint`), **continue in the same session** and implement Phase 2. Do not hand off to the user with “next, run the unit-test template.” Do not generate tests **before** the dashboard files, routes, and shared components for that operator exist.
+
+**Scaffolding:** The table below describes **expected** tooling. If any file or script is missing from the repo, **create it** as part of Phase 2 so `yarn test` works.
+
+### Existing test tooling in this template
+
+| Item | Purpose |
+|------|--------|
+| `jest.config.cjs` | `ts-jest`, `jsdom`, `src/**/*.test.{ts,tsx}`, CSS → `identity-obj-proxy` |
+| `src/setupTests.ts` | `@testing-library/jest-dom`; shared **`react-i18next`** mock (`t()` returns keys + simple `{{var}}` substitution) |
+| `src/test-utils/dataTestQuery.ts` | `getByDataTest('…')` — production tables use **`data-test`**, not `data-testid` (Cypress / console convention) |
+| `yarn test` / `yarn test:watch` / `yarn test:ci` | Run unit tests (CI adds coverage) |
+| `integration-tests/` | **Cypress e2e** only; unit tests live under `src/**/__tests__/` |
+
+**Mocks (match repo patterns):**
+
+- **`@openshift-console/dynamic-plugin-sdk`:** `useK8sWatchResource`, `useK8sModel`, `useDeleteModal`, and a lightweight **`Timestamp`** stub when needed.
+- **`react-helmet`:** Default export — `jest.mock('react-helmet', () => ({ __esModule: true, default: ({ children }) => <>{children}</> }))` when tests render pages that use `<Helmet>`.
+- **`react-router-dom`:** Wrap components that use `<Link>` in **`MemoryRouter`** (or mock `Link` if appropriate).
+- **Operator page tests:** Optionally **`jest.mock`** child `*Table` components with simple stubs (`data-testid="stub-…"`) so suites focus on loading / not-installed / installed layout without duplicating every watch.
+- **Do not** set `configure({ testIdAttribute: 'data-test' })` globally unless all tests switch to `data-test`; prefer **`getByDataTest()`** for `data-test` and **`getByTestId`** for test-only stubs.
+
+### What to cover (Senior QA expectations)
+
+**Happy path**
+
+- Operator page: **`loading`** → Spinner (e.g. `getByLabelText('Loading…')`); **`not-installed`** → `OperatorNotInstalled`; **`installed`** → page title (use **`getByRole('heading', { level: 1, name: … })`** if `<title>` duplicates visible text) and each resource card or stubbed table region.
+- Each **`*Table`**: at least one row with **name** (or link text) and **Inspect** target (`href` matches `/<operator-short-name>/inspect/<plural>/…` for namespaced or cluster-scoped rules).
+- **`ResourceTable` / `ExpandableResourceTable`:** loading, populated rows, expand shows **`expandedContent`** when `isExpanded` is true; toggle calls **`onToggle`**.
+- **`ResourceTableRowActions`:** Inspect + Delete; Delete invokes **`useDeleteModal`** mock.
+- **`useOperatorDetection`:** `loading` / `installed` / `not-installed` from **`useK8sModel`** tuple.
+- **Pure helpers** (if any): e.g. field-path resolution, status formatting — table-driven edge cases.
+
+**Edge cases**
+
+- **Empty or extreme data:** empty resource list → empty state region (`data-test="<table>-empty"`); very long `metadata.name`; empty name string if the UI allows it without crashing.
+- **Namespace:** `selectedProject === '#ALL_NS#'` vs missing `activeNamespace` (fallback behavior).
+- **Rapid interaction:** repeated **Delete** or **expand** clicks — handler called **N** times (no assumption of debouncing).
+
+**Error handling**
+
+- **`useK8sWatchResource`** returns loaded with **`loadError`** (object with `.message`) → table **`error`** UI shows message (use **`getByDataTest`** for `-error` suffix if that is what components emit).
+- Optional: invalid or missing mock data that triggers warning/empty paths — without throwing outside React error boundaries.
+
+### File layout conventions
+
+- Co-locate: `src/components/__tests__/MyResourcesTable.test.tsx`, `src/hooks/__tests__/useOperatorDetection.test.tsx`, `src/utils/__tests__/…`, `src/__tests__/<OperatorShortName>Page.test.tsx`.
+- ESLint: `**/*.test.{ts,tsx}` uses `env.jest: true` (see `.eslintrc.yml` `overrides`).
+
+### Validation (tests)
+
+- **`yarn test`** — all suites green.
+- **`yarn lint`** — no new errors in `src/` (warnings only if pre-existing).
+
+---
+
+## Prompt Template — generate unit tests for the new operator dashboard (run after Phase 1)
+
+Use this block **only** when you want a **standalone** test pass (e.g. tests for an operator that was merged earlier). For a **full** operator onboarding from this document, ignore this as a separate step—Phase 2 is already part of the main [Prompt Template](#prompt-template-copy-fill-run) above.
+
+```text
+The operator dashboard for [OPERATOR_NAME] was just added to this repo following promts/operator-onboarding.md (Phase 1). Phase 1 is complete: build and lint pass.
+
+Now add or extend **frontend unit tests only** (Jest + React Testing Library + @testing-library/user-event). Do not replace Cypress e2e tests unless fixing a broken reference. If Jest is not configured, add config and scripts first.
+
+Input (fill from the implemented dashboard):
+1) **Operator short name (path):** [e.g. openshift-pipelines] — page route `/<operator-short-name>`, inspect base `/<operator-short-name>/inspect`
+2) **Page component:** [e.g. OpenShiftPipelinesPage] — file path `src/<Name>Page.tsx` or as implemented
+3) **Table components:** list each `src/components/*Table.tsx` added for this operator (including expandable parents and flat list tables)
+4) **Shared pieces to reuse:** ResourceTable, ResourceTableRowActions, ExpandableResourceTable, OperatorNotInstalled, useOperatorDetection, any `src/utils/*` used for status or field paths
+5) **Primary detection GVK:** [group, version, kind] — for mocking useK8sModel in operator-detection tests
+
+Requirements:
+- Read existing tests under `src/**/__tests__/**/*.test.{ts,tsx}` and match **mocks, `data-test` vs `data-testid`, and `getByDataTest`** usage from `src/test-utils/dataTestQuery.ts`.
+- Keep `src/setupTests.ts` `react-i18next` mock; mock `react-helmet` default export in page tests as needed.
+- Cover **happy path**, **edge cases** (empty lists, long strings, `#ALL_NS#` / undefined namespace, rapid button clicks), and **error handling** (watch/list errors with `.message`).
+- Mock `@openshift-console/dynamic-plugin-sdk` hooks per test file; use `MemoryRouter` where `Link` is rendered.
+- For the operator page, you may mock heavy child tables with small stubs so tests focus on loading / not-installed / installed shell — document stubs in the summary.
+- Ensure **`yarn test`** and **`yarn lint`** pass.
+
+Start implementation immediately. Do not ask for confirmation.
+
+Final response format:
+1) **Test files** created/updated.
+2) **Coverage summary** (which components/states are covered).
+3) **Validation** (`yarn test`, `yarn lint`).
+4) **Gaps** (optional: what was intentionally out of scope).
+```
+
+---
