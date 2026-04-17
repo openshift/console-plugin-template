@@ -1,1773 +1,206 @@
 ---
 name: openshift-console-plugin
-description: Expert guidance for developing OpenShift Console dynamic plugins using React, TypeScript, and PatternFly
+description: Comprehensive guide for developing OpenShift Console dynamic plugins - overview and navigation to specialized skills
 ---
 
-# OpenShift Console Plugin Development Skill
-
-This skill provides comprehensive guidance for developing dynamic plugins for the OpenShift Console. It covers the complete development lifecycle from project setup to deployment, incorporating best practices from production plugins like KubeVirt, Network Observability, Pipelines, and Networking.
-
-## 1. Project Structure and Setup
-
-### Essential Files and Directories
-```
-my-console-plugin/
-├── src/
-│   ├── components/          # React components
-│   ├── types/              # TypeScript type definitions
-│   └── index.ts            # Entry point
-├── console-extensions.json  # Plugin extension declarations
-├── package.json            # Dependencies and plugin metadata
-├── webpack.config.ts       # Module federation configuration
-├── tsconfig.json          # TypeScript configuration
-├── locales/               # i18n translation files
-├── charts/                # Helm chart for deployment
-└── integration-tests/     # Cypress e2e tests
-```
-
-### Plugin Metadata in package.json
-```json
-{
-  "name": "@my-org/my-console-plugin",
-  "consolePlugin": {
-    "name": "my-console-plugin",
-    "version": "1.0.0",
-    "displayName": "My Console Plugin",
-    "description": "Extends OpenShift Console with custom functionality",
-    "exposedModules": {
-      "MyPage": "./components/MyPage",
-      "MyListPage": "./components/MyListPage",
-      "MyDetailsPage": "./components/MyDetailsPage"
-    },
-    "dependencies": {
-      "@console/pluginAPI": "^4.21.0"
-    }
-  }
-}
-```
-
-### OpenShift Version Compatibility
-
-**⚠️ CRITICAL: Version compatibility is essential for plugin stability**
-
-Plugin development requires careful attention to OpenShift Console and shared library versions. Always reference the [official SDK documentation](https://github.com/openshift/console/blob/main/frontend/packages/console-dynamic-plugin-sdk/README.md) for the latest compatibility matrix.
-
-#### Console SDK Version Mapping
-```json
-{
-  "devDependencies": {
-    "@openshift-console/dynamic-plugin-sdk": "4.21-latest",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "4.21-latest"
-  }
-}
-```
-
-**SDK Version Scheme:**
-- SDK packages follow semver where major/minor version indicates supported OpenShift Console version
-- Example: `4.21.x` supports OpenShift Console 4.21.x
-- Prerelease versions: `"4.19.0-prerelease.1"` (development builds)
-- Full releases: `"4.19.0"` (published after Console GA)
-
-#### PatternFly Version Compatibility Matrix
-
-| OpenShift Console Version | Supported PatternFly Versions | Recommended |
-|---------------------------|-------------------------------|-------------|
-| 4.22.x | PatternFly 6.x | ✅ PF6 |
-| 4.19.x - 4.22.x | PatternFly 6.x, 5.x | ✅ PF6 |
-| 4.15.x - 4.18.x | PatternFly 5.x, 4.x | ✅ PF5 |
-| 4.12.x - 4.14.x | PatternFly 4.x | ⚠️ PF4 (legacy) |
-
-```json
-{
-  "devDependencies": {
-    "@patternfly/react-core": "^6.0.0",
-    "@patternfly/react-icons": "^6.0.0", 
-    "@patternfly/react-table": "^6.0.0"
-  }
-}
-```
-
-#### Shared Libraries Provided by Console
-
-The OpenShift Console provides these shared modules to avoid duplication:
-
-**Core Libraries:**
-- `@openshift/dynamic-plugin-sdk`
-- `@openshift-console/dynamic-plugin-sdk`
-- `react` (version managed by console)
-- `react-dom`
-- `react-redux`
-- `redux`
-
-**UI Libraries:**
-- `@patternfly/react-core`
-- `@patternfly/react-icons`
-- `@patternfly/react-table`
-
-**Additional Libraries:**
-- Various utility libraries (check the [official SDK documentation](https://github.com/openshift/console/blob/main/frontend/packages/console-dynamic-plugin-sdk/README.md) for current list)
-
-#### Version Selection Best Practices
-
-1. **Target Specific Console Version**: Use exact SDK version matching your target OpenShift release
-```json
-{
-  "@openshift-console/dynamic-plugin-sdk": "4.21.0" // Exact version
-}
-```
-
-2. **Use Version Ranges for Broader Compatibility**: 
-```json
-{
-  "@openshift-console/dynamic-plugin-sdk": "^4.21.0" // Compatible versions
-}
-```
-
-3. **Pin PatternFly Major Version**:
-```json
-{
-  "@patternfly/react-core": "^6.0.0" // Pin to PF6 for console 4.22+
-}
-```
-
-4. **Check Compatibility Before Upgrading**:
-```bash
-# Always check latest compatibility matrix
-curl -s https://raw.githubusercontent.com/openshift/console/main/frontend/packages/console-dynamic-plugin-sdk/README.md | grep -A 20 "Version compatibility"
-```
-
-#### Version Troubleshooting
-
-Common version-related issues:
-- **Runtime errors**: Version mismatch between plugin and console shared modules
-- **Styling issues**: PatternFly version incompatibility  
-- **Build failures**: SDK version doesn't support target OpenShift version
-- **Type errors**: TypeScript definitions mismatch
-
-**Resolution steps:**
-1. Verify OpenShift cluster version: `oc version`
-2. Check console version in cluster
-3. Update SDK versions to match console version
-4. Update PatternFly to compatible version
-5. Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-
-## 2. Console Extensions and Integration Points
-
-### Navigation Extensions
-```json
-{
-  "type": "console.navigation/section",
-  "properties": {
-    "id": "my-plugin-section",
-    "perspective": "admin",
-    "name": "%plugin__my-console-plugin~My Section%"
-  }
-}
-```
-
-```json
-{
-  "type": "console.navigation/href",
-  "properties": {
-    "id": "my-plugin-nav",
-    "name": "%plugin__my-console-plugin~My Feature%",
-    "href": "/my-feature",
-    "perspective": "admin",
-    "section": "my-plugin-section"
-  }
-}
-```
-
-### Page Routes
-```json
-{
-  "type": "console.page/route",
-  "properties": {
-    "path": "/my-feature",
-    "component": { "$codeRef": "MyPage" }
-  }
-}
-```
-
-### Resource Pages and List Views
-```json
-{
-  "type": "console.page/resource/list",
-  "properties": {
-    "model": {
-      "group": "my-group.io",
-      "version": "v1",
-      "kind": "MyResource"
-    },
-    "component": { "$codeRef": "MyResourceList" }
-  }
-}
-```
-
-```json
-{
-  "type": "console.page/resource/details",
-  "properties": {
-    "model": {
-      "group": "my-group.io", 
-      "version": "v1",
-      "kind": "MyResource"
-    },
-    "component": { "$codeRef": "MyResourceDetails" }
-  }
-}
-```
-
-### Action Providers
-```json
-{
-  "type": "console.action/provider",
-  "properties": {
-    "contextId": "resource-actions",
-    "provider": { "$codeRef": "myResourceActions" }
-  }
-}
-```
-
-
-### Tab Extensions
-```json
-{
-  "type": "console.tab",
-  "properties": {
-    "contextId": "resource-details",
-    "name": "%plugin__my-console-plugin~Monitoring%",
-    "href": "monitoring",
-    "component": { "$codeRef": "MyResourceMonitoringTab" }
-  }
-}
-```
-
-## 3. Component Development Patterns
-
-### Base Page Component
-```typescript
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  Page,
-  PageSection,
-  Title,
-  Card,
-  CardBody 
-} from '@patternfly/react-core';
-
-const MyPage: React.FC = () => {
-  const { t } = useTranslation('plugin__my-console-plugin');
-  
-  return (
-    <Page>
-      <PageSection variant="light">
-        <Title headingLevel="h1">
-          {t('My Feature')}
-        </Title>
-      </PageSection>
-      <PageSection>
-        <Card>
-          <CardBody>
-            {/* Content */}
-          </CardBody>
-        </Card>
-      </PageSection>
-    </Page>
-  );
-};
-
-export default MyPage;
-```
-
-### Resource List Component
-```typescript
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-  ListPage,
-  TableColumn,
-  useK8sWatchResource,
-  VirtualizedTable,
-  TableData,
-  RowFunction
-} from '@openshift-console/dynamic-plugin-sdk';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-
-interface MyResource extends K8sResourceCommon {
-  spec: {
-    // resource spec
-  };
-  status?: {
-    // resource status
-  };
-}
-
-const MyResourceList: React.FC = () => {
-  const { t } = useTranslation('plugin__my-console-plugin');
-  
-  const [resources, loaded, loadError] = useK8sWatchResource<MyResource[]>({
-    groupVersionKind: {
-      group: 'my-group.io',
-      version: 'v1',
-      kind: 'MyResource',
-    },
-    isList: true,
-  });
-
-  const columns: TableColumn<MyResource>[] = [
-    {
-      title: t('Name'),
-      id: 'name',
-      transforms: [],
-      props: { className: 'pf-m-width-20' },
-    },
-    {
-      title: t('Namespace'),
-      id: 'namespace', 
-      transforms: [],
-      props: { className: 'pf-m-width-20' },
-    },
-    {
-      title: t('Status'),
-      id: 'status',
-      transforms: [],
-      props: { className: 'pf-m-width-15' },
-    },
-  ];
-
-  const Row: RowFunction<MyResource> = ({ obj, activeColumnIDs }) => (
-    <>
-      <TableData id="name" activeColumnIDs={activeColumnIDs}>
-        <ResourceLink
-          kind="MyResource"
-          name={obj.metadata.name}
-          namespace={obj.metadata.namespace}
-        />
-      </TableData>
-      <TableData id="namespace" activeColumnIDs={activeColumnIDs}>
-        {obj.metadata.namespace}
-      </TableData>
-      <TableData id="status" activeColumnIDs={activeColumnIDs}>
-        {obj.status?.phase || 'Unknown'}
-      </TableData>
-    </>
-  );
-
-  return (
-    <VirtualizedTable
-      data={resources}
-      unfilteredData={resources}
-      loaded={loaded}
-      loadError={loadError}
-      columns={columns}
-      Row={Row}
-    />
-  );
-};
-
-export default MyResourceList;
-```
-
-### Resource Details Component
-```typescript
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import {
-  DetailsPage,
-  useK8sWatchResource,
-  HorizontalNav,
-  DetailsPageProps
-} from '@openshift-console/dynamic-plugin-sdk';
-
-const MyResourceDetailsPage: React.FC = () => {
-  const { t } = useTranslation('plugin__my-console-plugin');
-  const { ns, name } = useParams<{ ns: string; name: string }>();
-  
-  const [resource, loaded, loadError] = useK8sWatchResource<MyResource>({
-    groupVersionKind: {
-      group: 'my-group.io',
-      version: 'v1',
-      kind: 'MyResource',
-    },
-    name,
-    namespace: ns,
-  });
-
-  const pages = [
-    {
-      href: '',
-      name: t('Details'),
-      component: MyResourceDetails,
-    },
-    {
-      href: 'yaml',
-      name: t('YAML'),
-      component: YAMLEditorPage,
-    },
-    {
-      href: 'events',
-      name: t('Events'),
-      component: EventsPage,
-    },
-  ];
-
-  return (
-    <DetailsPage
-      {...props}
-      pages={pages}
-      kind="MyResource"
-      name={name}
-      namespace={ns}
-      resource={resource}
-      loaded={loaded}
-      loadError={loadError}
-    />
-  );
-};
-
-export default MyResourceDetailsPage;
-```
-
-## 4. TypeScript Configuration and Patterns
-
-### Strict TypeScript Setup
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "es6"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true
-  },
-  "include": [
-    "src",
-    "integration-tests"
-  ]
-}
-```
-
-### Type Definitions
-```typescript
-// src/types/index.ts
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-
-export interface MyResourceSpec {
-  replicas?: number;
-  selector: {
-    matchLabels: Record<string, string>;
-  };
-  template: {
-    metadata?: {
-      labels?: Record<string, string>;
-    };
-    spec: {
-      containers: Container[];
-    };
-  };
-}
-
-export interface MyResourceStatus {
-  phase: 'Pending' | 'Running' | 'Succeeded' | 'Failed';
-  conditions?: Condition[];
-  replicas?: number;
-  readyReplicas?: number;
-}
-
-export interface MyResource extends K8sResourceCommon {
-  spec: MyResourceSpec;
-  status?: MyResourceStatus;
-}
-
-export interface Condition {
-  type: string;
-  status: 'True' | 'False' | 'Unknown';
-  lastTransitionTime?: string;
-  reason?: string;
-  message?: string;
-}
-```
-
-## 5. State Management and Data Fetching
-
-### Using K8s SDK Helpers for Resource Operations
-
-**⚠️ CRITICAL: Always use SDK helpers for Kubernetes resource operations**
-
-**DO NOT construct API paths manually**. The console SDK provides helper functions that handle authentication, proper URL construction, error handling, and caching. Always use these instead of raw fetch calls or manual path construction.
-
-#### Core SDK Helper Functions
-```typescript
-import { 
-  useK8sWatchResource,
-  k8sGet,
-  k8sCreate, 
-  k8sUpdate,
-  k8sDelete,
-  k8sList,
-  consoleFetch
-} from '@openshift-console/dynamic-plugin-sdk';
-```
-
-#### API Groups and Versions - Critical Configuration
-
-**IMPORTANT**: API groups and versions must be specified as separate properties, not as combined strings.
-
-```typescript
-// ✅ CORRECT - Separate group and version properties
-const resourceModel = {
-  groupVersionKind: {
-    group: 'apps',           // Separate property
-    version: 'v1',           // Separate property  
-    kind: 'Deployment'
-  }
-};
-
-// ❌ WRONG - Do not combine group/version as single string
-const badModel = {
-  groupVersionKind: {
-    group: 'apps/v1',        // WRONG - don't combine
-    version: '',
-    kind: 'Deployment'
-  }
-};
-```
-
-#### Mapping YAML apiVersion to SDK Properties
-When you see a YAML resource with `apiVersion: "apps/v1"`, map it to SDK properties:
-
-```yaml
-# YAML resource shows:
-apiVersion: apps/v1
-kind: Deployment
-```
-
-```typescript
-// Maps to SDK configuration:
-const deploymentModel = {
-  groupVersionKind: {
-    group: 'apps',           // Everything before the '/'
-    version: 'v1',           // Everything after the '/'  
-    kind: 'Deployment'
-  }
-};
-
-// Special case: Core resources (no group in YAML)
-# YAML: apiVersion: v1
-# Maps to: group: '', version: 'v1'
-```
-
-#### Watch Resources with useK8sWatchResource
-```typescript
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-
-const useMyResources = (namespace?: string) => {
-  return useK8sWatchResource<MyResource[]>({
-    groupVersionKind: {
-      group: 'my-group.io',    // Correct separate properties
-      version: 'v1',
-      kind: 'MyResource',
-    },
-    isList: true,
-    namespace,                 // Optional namespace filter
-    optional: true,            // Won't fail if CRD doesn't exist
-  });
-};
-
-// Usage in component
-const MyComponent: React.FC = () => {
-  const [resources, loaded, loadError] = useMyResources('my-namespace');
-  
-  if (loadError) {
-    return <div>Error loading resources: {loadError.message}</div>;
-  }
-  
-  if (!loaded) {
-    return <div>Loading...</div>;
-  }
-  
-  return <div>{resources.length} resources found</div>;
-};
-```
-
-#### One-time Resource Fetching with k8sGet
-```typescript
-import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
-
-const fetchSpecificResource = async (name: string, namespace: string) => {
-  try {
-    const resource = await k8sGet<MyResource>({
-      model: {
-        groupVersionKind: {
-          group: 'my-group.io',
-          version: 'v1', 
-          kind: 'MyResource',
-        }
-      },
-      name,
-      ns: namespace
-    });
-    return resource;
-  } catch (error) {
-    console.error('Failed to fetch resource:', error);
-    throw error;
-  }
-};
-```
-
-#### Common API Group Examples
-```typescript
-// Core Kubernetes resources (no group)
-const podModel = {
-  groupVersionKind: {
-    group: '',               // Empty string for core resources
-    version: 'v1',
-    kind: 'Pod'
-  }
-};
-
-// Apps group
-const deploymentModel = {
-  groupVersionKind: {
-    group: 'apps',
-    version: 'v1', 
-    kind: 'Deployment'
-  }
-};
-
-// OpenShift specific
-const routeModel = {
-  groupVersionKind: {
-    group: 'route.openshift.io',
-    version: 'v1',
-    kind: 'Route'  
-  }
-};
-
-// Custom Resource
-const myResourceModel = {
-  groupVersionKind: {
-    group: 'example.com',
-    version: 'v1alpha1',
-    kind: 'MyCustomResource'
-  }
-};
-```
-
-### Custom Hooks for Complex Logic
-```typescript
-import { useState, useEffect } from 'react';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
-
-const useMetrics = (resource: MyResource) => {
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        setLoading(true);
-        const response = await consoleFetch(
-          `/api/v1/metrics/${resource.metadata.name}`
-        );
-        const data = await response.json();
-        setMetrics(data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (resource) {
-      fetchMetrics();
-    }
-  }, [resource]);
-
-  return { metrics, loading, error };
-};
-```
-
-## 6. Internationalization (i18n)
-
-### Translation Setup
-```typescript
-// src/i18n.ts
-import { useTranslation } from 'react-i18next';
-
-export const useMyPluginTranslation = () => {
-  return useTranslation('plugin__my-console-plugin');
-};
-```
-
-### Translation Usage
-```typescript
-const MyComponent: React.FC = () => {
-  const { t } = useMyPluginTranslation();
-  
-  return (
-    <div>
-      <h1>{t('Welcome to my plugin')}</h1>
-      <p>{t('This plugin provides {{feature}}', { feature: 'advanced monitoring' })}</p>
-    </div>
-  );
-};
-```
-
-### Locale Files Structure
-```
-locales/
-├── en/
-│   └── plugin__my-console-plugin.json
-├── es/
-│   └── plugin__my-console-plugin.json
-└── ja/
-    └── plugin__my-console-plugin.json
-```
-
-```json
-// locales/en/plugin__my-console-plugin.json
-{
-  "Welcome to my plugin": "Welcome to my plugin",
-  "This plugin provides {{feature}}": "This plugin provides {{feature}}",
-  "Create {{kind}}": "Create {{kind}}",
-  "Edit {{kind}}": "Edit {{kind}}"
-}
-```
-
-## 7. UI Design with PatternFly
-
-**⚠️ CRITICAL: Always prefer PatternFly components over custom implementations**
-
-The OpenShift Console uses PatternFly as its design system. Using PatternFly components ensures consistency, accessibility, theming support, and reduces maintenance burden. Avoid creating custom components when PatternFly alternatives exist.
-
-### Why Use PatternFly Components
-
-1. **Consistency**: Matches OpenShift Console's look and feel
-2. **Accessibility**: Built-in ARIA attributes and keyboard navigation
-3. **Theming**: Automatic dark/light mode support
-4. **Responsive**: Mobile and desktop optimized
-5. **Maintenance**: Updates handled by PatternFly team
-6. **Performance**: Optimized and tested components
-
-### Core PatternFly Components for Console Plugins
-
-#### Dashboard and Layout Components
-```typescript
-import {
-  Page,           // Main page wrapper
-  PageSection,    // Content sections
-  Card,          // Content cards
-  CardTitle,     // Card headers
-  CardBody,      // Card content
-  Gallery,       // Responsive grid layout
-  GalleryItem,   // Grid items
-  Grid,          // Manual grid system
-  GridItem,      // Grid cells
-  Flex,          // Flexbox layout
-  FlexItem,      // Flex children
-  Stack,         // Vertical stacking
-  StackItem      // Stack children
-} from '@patternfly/react-core';
-
-// Example: Dashboard with cards
-const MyDashboard: React.FC = () => (
-  <Page>
-    <PageSection variant="light">
-      <Gallery hasGutter>
-        <GalleryItem>
-          <Card>
-            <CardTitle>Cluster Status</CardTitle>
-            <CardBody>Content here</CardBody>
-          </Card>
-        </GalleryItem>
-        <GalleryItem>
-          <Card>
-            <CardTitle>Resource Usage</CardTitle>
-            <CardBody>More content</CardBody>
-          </Card>
-        </GalleryItem>
-      </Gallery>
-    </PageSection>
-  </Page>
-);
-```
-
-#### Data Display Components
-```typescript
-import {
-  Table,           // Data tables
-  Thead,           // Table header
-  Tbody,           // Table body
-  Tr,              // Table rows
-  Th,              // Header cells
-  Td,              // Data cells
-  DataList,        // Alternative to tables
-  DataListItem,    // List items
-  DescriptionList, // Key-value pairs
-  Label,           // Status labels
-  Badge,           // Count indicators
-  Progress,        // Progress bars
-  Spinner          // Loading indicators
-} from '@patternfly/react-core';
-
-// Example: Resource status display
-const ResourceStatus: React.FC<{ resource }> = ({ resource }) => (
-  <Card>
-    <CardBody>
-      <DescriptionList>
-        <DescriptionListGroup>
-          <DescriptionListTerm>Status</DescriptionListTerm>
-          <DescriptionListDescription>
-            <Label color={resource.status === 'Ready' ? 'green' : 'red'}>
-              {resource.status}
-            </Label>
-          </DescriptionListDescription>
-        </DescriptionListGroup>
-        <DescriptionListGroup>
-          <DescriptionListTerm>Progress</DescriptionListTerm>
-          <DescriptionListDescription>
-            <Progress value={resource.progress} />
-          </DescriptionListDescription>
-        </DescriptionListGroup>
-      </DescriptionList>
-    </CardBody>
-  </Card>
-);
-```
-
-#### Navigation and Actions
-```typescript
-import {
-  Tabs,            // Tab navigation
-  Tab,             // Individual tabs
-  TabTitleText,    // Tab labels
-  Breadcrumb,      // Navigation breadcrumbs
-  BreadcrumbItem,  // Breadcrumb links
-  Button,          // Action buttons
-  Dropdown,        // Action menus
-  DropdownItem,    // Menu items
-  KebabToggle,     // Three-dot menu
-  Toolbar,         // Action toolbars
-  ToolbarContent,  // Toolbar sections
-  ToolbarGroup,    // Toolbar groups
-  ToolbarItem      // Individual tools
-} from '@patternfly/react-core';
-
-// Example: Resource actions toolbar
-const ResourceActions: React.FC = () => (
-  <Toolbar>
-    <ToolbarContent>
-      <ToolbarGroup>
-        <ToolbarItem>
-          <Button variant="primary">Create</Button>
-        </ToolbarItem>
-        <ToolbarItem>
-          <Dropdown
-            toggle={<KebabToggle />}
-            dropdownItems={[
-              <DropdownItem key="edit">Edit</DropdownItem>,
-              <DropdownItem key="delete">Delete</DropdownItem>
-            ]}
-          />
-        </ToolbarItem>
-      </ToolbarGroup>
-    </ToolbarContent>
-  </Toolbar>
-);
-```
-
-#### Forms and Input Components
-```typescript
-import {
-  Form,            // Form wrapper
-  FormGroup,       // Form sections
-  TextInput,       // Text fields
-  Select,          // Dropdowns
-  SelectOption,    // Dropdown options
-  Checkbox,        // Checkboxes
-  Radio,           // Radio buttons
-  Switch,          // Toggle switches
-  FormHelperText,  // Help text
-  Alert            // Validation messages
-} from '@patternfly/react-core';
-
-// Example: Configuration form
-const ConfigForm: React.FC = () => (
-  <Form>
-    <FormGroup label="Resource Name" isRequired>
-      <TextInput id="name" />
-      <FormHelperText>Must be unique within namespace</FormHelperText>
-    </FormGroup>
-    <FormGroup label="Enable Feature">
-      <Switch id="feature-toggle" />
-    </FormGroup>
-  </Form>
-);
-```
-
-#### Status and Feedback Components
-```typescript
-import {
-  Alert,              // Notifications
-  AlertGroup,         // Alert containers
-  Banner,             // Page banners
-  EmptyState,         // No data states
-  EmptyStateBody,     // Empty state content
-  EmptyStateIcon,     // Empty state icons
-  Modal,              // Dialog modals
-  ModalVariant,       // Modal types
-  NotificationDrawer, // Notification panel
-  Tooltip             // Help tooltips
-} from '@patternfly/react-core';
-
-// Example: Empty state for resource lists
-const NoResourcesFound: React.FC = () => (
-  <EmptyState>
-    <EmptyStateIcon icon={CubesIcon} />
-    <Title headingLevel="h4">No resources found</Title>
-    <EmptyStateBody>
-      Create your first resource to get started.
-    </EmptyStateBody>
-    <Button variant="primary">Create Resource</Button>
-  </EmptyState>
-);
-```
-
-### PatternFly vs Custom Components Decision Guide
-
-| Use Case | Prefer PatternFly | Consider Custom |
-|----------|-------------------|-----------------|
-| Data tables | ✅ Table component | ❌ |
-| Status displays | ✅ Label, Badge | ❌ |
-| Forms | ✅ Form components | ❌ |
-| Navigation | ✅ Tabs, Breadcrumb | ❌ |
-| Cards/panels | ✅ Card component | ❌ |
-| Buttons/actions | ✅ Button, Dropdown | ❌ |
-| Loading states | ✅ Spinner, Progress | ❌ |
-| Empty states | ✅ EmptyState | ❌ |
-| Modals/dialogs | ✅ Modal | ❌ |
-| Unique visualizations | Consider first | ✅ Charts, diagrams |
-| Domain-specific widgets | Consider first | ✅ If no PF equivalent |
-
-### CSS Best Practices
-
-**⚠️ NEVER use inline styles - Always use CSS classes or PatternFly props**
-
-Inline styles should be avoided in OpenShift Console plugins for several critical reasons:
-
-#### Why Avoid Inline Styles?
-1. **Theming Breaks**: Inline styles override CSS custom properties, breaking dark/light theme switching
-2. **Responsiveness**: Cannot use media queries or responsive design patterns
-3. **Accessibility**: Harder to implement focus states, high contrast modes, and screen reader optimizations
-4. **Maintenance**: Difficult to update styling across components
-5. **Performance**: Inline styles prevent CSS caching and optimization
-6. **Consistency**: Prevents using PatternFly design tokens and variables
-7. **CSP Violations**: May violate Content Security Policy rules
-
-#### ✅ CORRECT Styling Approaches
-```css
-/* Use plugin prefix for all custom classes */
-.my-console-plugin__container {
-  padding: var(--pf-v6-global-spacer-md);
-}
-
-.my-console-plugin__card {
-  background: var(--pf-v6-global-palette--grey-100);
-  border: 1px solid var(--pf-v6-global-BorderColor-300);
-}
-
-.my-console-plugin__status-running {
-  color: var(--pf-v6-global-palette--green-500);
-}
-
-.my-console-plugin__status-failed {
-  color: var(--pf-v6-global-palette--red-500);
-}
-
-/* Never use hex colors - use CSS variables */
-.my-console-plugin__highlight {
-  background-color: var(--pf-v6-global-palette--blue-50);
-  color: var(--pf-v6-global-palette--blue-700);
-}
-```
-
-#### ❌ WRONG - Avoid These Patterns
-```typescript
-// DON'T DO THIS - Inline styles break theming
-const BadComponent: React.FC = () => (
-  <div style={{ 
-    padding: '16px',           // Use CSS classes instead
-    backgroundColor: '#f0f0f0', // Breaks dark theme
-    color: 'red'               // Use PatternFly color props
-  }}>
-    Content
-  </div>
-);
-
-// DON'T DO THIS - Conditional inline styles
-const AnotherBadComponent: React.FC = ({ isError }) => (
-  <span style={{ 
-    color: isError ? '#d73502' : '#28a745' // Use CSS classes + conditional className
-  }}>
-    Status
-  </span>
-);
-```
-
-### Component Styling - Correct Approaches
-
-#### ✅ Method 1: CSS Classes with Conditional Styling
-```typescript
-import React from 'react';
-import {
-  Card,
-  CardTitle,
-  CardBody,
-  Label,
-  Flex,
-  FlexItem
-} from '@patternfly/react-core';
-import './MyComponent.css';
-
-interface MyComponentProps {
-  status: 'running' | 'failed' | 'pending';
-  isHighlighted?: boolean;
-}
-
-const MyComponent: React.FC<MyComponentProps> = ({ status, isHighlighted }) => {
-  // Use conditional className instead of inline styles
-  const containerClassName = [
-    'my-console-plugin__status-card',
-    isHighlighted && 'my-console-plugin__status-card--highlighted'
-  ].filter(Boolean).join(' ');
-
-  return (
-    <Card className={containerClassName}>
-      <CardTitle>Status Overview</CardTitle>
-      <CardBody>
-        <Flex>
-          <FlexItem>
-            <span className={`my-console-plugin__status my-console-plugin__status--${status}`}>
-              {status}
-            </span>
-          </FlexItem>
-          <FlexItem>
-            {/* Use PatternFly color props when available */}
-            <Label color={status === 'running' ? 'green' : status === 'failed' ? 'red' : 'grey'}>
-              {status}
-            </Label>
-          </FlexItem>
-        </Flex>
-      </CardBody>
-    </Card>
-  );
-};
-
-export default MyComponent;
-```
-
-#### ✅ Method 2: PatternFly Component Props
-```typescript
-import React from 'react';
-import {
-  Card,
-  CardTitle,
-  CardBody,
-  Alert,
-  Button,
-  Flex,
-  FlexItem
-} from '@patternfly/react-core';
-
-const MyAlertComponent: React.FC<{ hasError: boolean }> = ({ hasError }) => (
-  <Card>
-    <CardBody>
-      {/* Use PatternFly variant props instead of inline styles */}
-      <Alert 
-        variant={hasError ? 'danger' : 'success'} 
-        title={hasError ? 'Error occurred' : 'Success'}
-      />
-      <Flex>
-        <FlexItem>
-          {/* Use PatternFly size and variant props */}
-          <Button 
-            variant={hasError ? 'danger' : 'primary'}
-            size="sm"
-          >
-            {hasError ? 'Retry' : 'Continue'}
-          </Button>
-        </FlexItem>
-      </Flex>
-    </CardBody>
-  </Card>
-);
-```
-
-#### ✅ Method 3: CSS-in-JS Alternative (Use Sparingly)
-```typescript
-import React from 'react';
-import { Card } from '@patternfly/react-core';
-
-// If CSS-in-JS is absolutely necessary, use CSS custom properties
-const MyDynamicComponent: React.FC<{ progress: number }> = ({ progress }) => {
-  // Use CSS custom properties, not direct style values
-  const cardStyle = {
-    '--my-progress-width': `${progress}%`
-  } as React.CSSProperties;
-
-  return (
-    <Card className="my-console-plugin__progress-card" style={cardStyle}>
-      {/* Progress bar uses CSS custom property in stylesheet */}
-      <div className="my-console-plugin__progress-bar" />
-    </Card>
-  );
-};
-```
-
-#### CSS File (MyComponent.css)
-```css
-/* Support the component styling above */
-.my-console-plugin__status-card {
-  margin-bottom: var(--pf-v6-global-spacer-md);
-}
-
-.my-console-plugin__status-card--highlighted {
-  border: 2px solid var(--pf-v6-global-palette--blue-300);
-  box-shadow: var(--pf-v6-global-box-shadow-md);
-}
-
-.my-console-plugin__status {
-  font-weight: var(--pf-v6-global-FontWeight-bold);
-  padding: var(--pf-v6-global-spacer-xs);
-  border-radius: var(--pf-v6-global-BorderRadius-sm);
-}
-
-.my-console-plugin__status--running {
-  background-color: var(--pf-v6-global-palette--green-50);
-  color: var(--pf-v6-global-palette--green-700);
-}
-
-.my-console-plugin__status--failed {
-  background-color: var(--pf-v6-global-palette--red-50);
-  color: var(--pf-v6-global-palette--red-700);
-}
-
-.my-console-plugin__status--pending {
-  background-color: var(--pf-v6-global-palette--orange-50);
-  color: var(--pf-v6-global-palette--orange-700);
-}
-
-/* CSS custom property approach for dynamic values */
-.my-console-plugin__progress-card {
-  position: relative;
-}
-
-.my-console-plugin__progress-bar {
-  width: var(--my-progress-width);
-  height: 4px;
-  background-color: var(--pf-v6-global-palette--blue-300);
-  transition: width 0.3s ease;
-}
-```
-
-## 8. Webpack and Module Federation
-
-### Webpack Configuration
-```typescript
-// webpack.config.ts
-import { Configuration as WebpackConfiguration } from 'webpack';
-import { Configuration as DevServerConfiguration } from 'webpack-dev-server';
-import * as path from 'path';
-
-interface Configuration extends WebpackConfiguration {
-  devServer?: DevServerConfiguration;
-}
-
-const config: Configuration = {
-  mode: 'development',
-  entry: './src/index.ts',
-  devtool: 'source-map',
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
-      },
-    ],
-  },
-  plugins: [
-    new ModuleFederationPlugin({
-      name: 'my_console_plugin',
-      filename: 'plugin-entry.js',
-      exposes: {
-        './MyPage': './src/components/MyPage',
-        './MyListPage': './src/components/MyListPage',
-      },
-      shared: {
-        react: { singleton: true },
-        'react-dom': { singleton: true },
-      },
-    }),
-  ],
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
-  devServer: {
-    port: 9001,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-    },
-  },
-};
-
-export default config;
-```
-
-## 9. Testing Strategies
-
-**Code Quality First**: Always run `yarn lint` before testing and committing. This catches style issues, potential bugs, and accessibility violations before they reach testing or production.
-
-### Unit Testing with Jest
-```typescript
-// src/components/__tests__/MyPage.test.tsx
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { I18nextProvider } from 'react-i18next';
-import i18n from '../../utils/i18n-test';
-import MyPage from '../MyPage';
-
-describe('MyPage', () => {
-  const renderWithI18n = (component: React.ReactElement) => {
-    return render(
-      <I18nextProvider i18n={i18n}>
-        {component}
-      </I18nextProvider>
-    );
-  };
-
-  it('renders page title', () => {
-    renderWithI18n(<MyPage />);
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-  });
-});
-```
-
-### Integration Testing with Cypress
-```typescript
-// integration-tests/support/pages/my-page.ts
-export class MyPage {
-  visit(namespace?: string) {
-    const url = namespace ? `/my-feature?namespace=${namespace}` : '/my-feature';
-    cy.visit(url);
-  }
-
-  shouldShowTitle(title: string) {
-    cy.get('[data-test="page-title"]').should('contain.text', title);
-  }
-
-  clickCreateButton() {
-    cy.get('[data-test="create-button"]').click();
-  }
-}
-```
-
-```typescript
-// integration-tests/tests/my-feature.spec.ts
-import { MyPage } from '../support/pages/my-page';
-
-describe('My Feature', () => {
-  const page = new MyPage();
-
-  it('should display the my feature page', () => {
-    page.visit();
-    page.shouldShowTitle('My Feature');
-  });
-});
-```
-
-## 10. Development Workflow
-
-### Local Development
-
-**⚠️ IMPORTANT: Plugin Testing Requirements**
-
-To test your console plugin, you MUST run both the development server AND the OpenShift Console container. Running only the development server (`npm run start`) is insufficient for testing because:
-
-1. **Plugin Loading**: The console must load your plugin via module federation
-2. **Authentication**: Console APIs require proper authentication context
-3. **Extension Points**: Navigation items, routes, and other extensions only work within the full console
-4. **K8s API Access**: Resource operations require the console's proxy to the cluster APIs
-
-#### Complete Development Setup
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Login to OpenShift cluster (REQUIRED)
-oc login https://your-cluster-api:6443
-
-# 3. Start plugin development server (serves plugin assets)
-npm run start
-# This starts webpack dev server on http://localhost:9001
-
-# 4. Start OpenShift Console with plugin enabled (REQUIRED FOR TESTING)
-npm run start-console
-# This starts console container on http://localhost:9000
-# The console will load your plugin from the dev server
-
-# 5. Navigate to http://localhost:9000 to test your plugin
-```
-
-#### Testing Workflow
-```bash
-# After making changes to your plugin:
-# 1. Webpack dev server automatically rebuilds (from step 3)
-# 2. Refresh browser at http://localhost:9000 to see changes
-# 3. Check browser console for any plugin loading errors
-
-# Run automated tests
-npm run test                    # Unit tests
-npm run test-cypress-headless   # E2E tests
-
-# Code quality checks (REQUIRED before committing)
-npm run lint                    # ESLint + Stylelint with auto-fix
-```
-
-#### Pre-Commit Checklist
-
-**⚠️ ALWAYS run the linter before committing changes**
-
-```bash
-# Essential pre-commit workflow:
-# 1. Run linter (fixes most issues automatically)
-yarn lint
-
-# 2. Review any remaining linter errors that couldn't be auto-fixed
-# 3. Fix any TypeScript compilation errors
-yarn tsc --noEmit
-
-# 4. Test your changes work in the browser
-# 5. Stage and commit your changes
-git add .
-git commit -m "Your commit message"
-```
-
-**Why lint before committing?**
-- **Consistency**: Maintains consistent code style across the project
-- **Quality**: Catches potential bugs and code issues early
-- **CI/CD**: Prevents build failures in continuous integration
-- **Collaboration**: Makes code reviews easier and more focused
-- **Accessibility**: ESLint rules help catch accessibility issues
-- **Performance**: Identifies potential performance anti-patterns
-
-**What the linter checks:**
-- Code formatting (Prettier)
-- JavaScript/TypeScript best practices (ESLint)
-- CSS style consistency (Stylelint)
-- Accessibility violations
-- Potential security issues
-- Import/export consistency
-
-#### Troubleshooting Plugin Loading
-- Check browser dev tools Network tab for plugin loading errors
-- Verify `console-extensions.json` matches your `exposedModules` in package.json
-- Ensure your components are properly exported
-- Check the console container logs for plugin registration errors
-
-### Development Scripts
-```json
-{
-  "scripts": {
-    "start": "webpack serve --config webpack.config.ts",
-    "start-console": "./scripts/start-console.sh",
-    "build": "webpack --mode production",
-    "test": "jest",
-    "test-cypress": "cypress open",
-    "test-cypress-headless": "cypress run",
-    "lint": "eslint src --ext .ts,.tsx --fix && stylelint 'src/**/*.css' --fix",
-    "i18n": "i18next-scanner --config i18next-scanner.config.js"
-  }
-}
-```
-
-## 11. Common Extension Patterns
-
-### Resource Actions
-```typescript
-// src/actions/my-resource-actions.ts
-import { Action } from '@openshift-console/dynamic-plugin-sdk';
-import { MyResource } from '../types';
-
-export const myResourceActions = (
-  kindObj: K8sKind,
-  obj: MyResource
-): Action[] => {
-  return [
-    {
-      id: 'restart-my-resource',
-      label: 'Restart',
-      icon: <RestartIcon />,
-      cta: {
-        href: `/api/v1/my-resources/${obj.metadata.namespace}/${obj.metadata.name}/restart`,
-        external: true,
-      },
-      accessReview: {
-        group: 'my-group.io',
-        resource: 'myresources',
-        verb: 'patch',
-        name: obj.metadata.name,
-        namespace: obj.metadata.namespace,
-      },
-    },
-  ];
-};
-```
-
-### Custom Status Components
-```typescript
-// src/components/MyResourceStatus.tsx
-import React from 'react';
-import { Label, Spinner } from '@patternfly/react-core';
-import { MyResource } from '../types';
-
-interface MyResourceStatusProps {
-  resource: MyResource;
-}
-
-export const MyResourceStatus: React.FC<MyResourceStatusProps> = ({ resource }) => {
-  const status = resource.status?.phase;
-  
-  switch (status) {
-    case 'Running':
-      return <Label color="green">Running</Label>;
-    case 'Failed':
-      return <Label color="red">Failed</Label>;
-    case 'Pending':
-      return (
-        <>
-          <Spinner size="md" />
-          <Label color="blue">Pending</Label>
-        </>
-      );
-    default:
-      return <Label color="grey">Unknown</Label>;
-  }
-};
-```
-
-### Modal Forms
-```typescript
-// src/components/CreateMyResourceModal.tsx
-import React from 'react';
-import {
-  Modal,
-  ModalVariant,
-  Form,
-  FormGroup,
-  TextInput,
-  Button,
-  ActionGroup,
-} from '@patternfly/react-core';
-import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
-
-interface CreateMyResourceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  namespace: string;
-}
-
-export const CreateMyResourceModal: React.FC<CreateMyResourceModalProps> = ({
-  isOpen,
-  onClose,
-  namespace,
-}) => {
-  const [name, setName] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await k8sCreate({
-        model: {
-          apiGroup: 'my-group.io',
-          apiVersion: 'v1',
-          kind: 'MyResource',
-        },
-        data: {
-          apiVersion: 'my-group.io/v1',
-          kind: 'MyResource',
-          metadata: {
-            name,
-            namespace,
-          },
-          spec: {
-            // resource spec
-          },
-        },
-      });
-      onClose();
-    } catch (error) {
-      console.error('Failed to create resource:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Modal
-      variant={ModalVariant.medium}
-      title="Create My Resource"
-      isOpen={isOpen}
-      onClose={onClose}
-    >
-      <Form onSubmit={handleSubmit}>
-        <FormGroup label="Name" isRequired>
-          <TextInput
-            value={name}
-            onChange={(value) => setName(value)}
-            isRequired
-          />
-        </FormGroup>
-        <ActionGroup>
-          <Button
-            type="submit"
-            variant="primary"
-            isLoading={isLoading}
-          >
-            Create
-          </Button>
-          <Button variant="link" onClick={onClose}>
-            Cancel
-          </Button>
-        </ActionGroup>
-      </Form>
-    </Modal>
-  );
-};
-```
-
-## 12. Performance Optimization
-
-### Code Splitting
-```typescript
-// Use React.lazy for code splitting
-const MyLargeComponent = React.lazy(() => import('./MyLargeComponent'));
-
-const MyPage: React.FC = () => {
-  return (
-    <div>
-      <Suspense fallback={<Spinner />}>
-        <MyLargeComponent />
-      </Suspense>
-    </div>
-  );
-};
-```
-
-### Memoization
-```typescript
-// Use React.memo for component optimization
-export const MyExpensiveComponent = React.memo<MyProps>(({ data }) => {
-  const processedData = useMemo(() => {
-    return processLargeDataSet(data);
-  }, [data]);
-
-  return <div>{/* render processed data */}</div>;
-});
-
-// Use useCallback for event handlers
-const MyComponent: React.FC = () => {
-  const handleClick = useCallback((id: string) => {
-    // handle click
-  }, []);
-
-  return <MyList onItemClick={handleClick} />;
-};
-```
-
-## 13. Deployment
-
-### Container Image Build
-```dockerfile
-# Dockerfile
-FROM registry.access.redhat.com/ubi8/nodejs-16 AS builder
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM registry.access.redhat.com/ubi8/nginx-120
-COPY --from=builder /opt/app-root/src/dist /opt/app-root/src
-COPY nginx.conf /etc/nginx/nginx.conf
-CMD nginx -g "daemon off;"
-```
-
-### Helm Chart
-```yaml
-# charts/my-console-plugin/values.yaml
-plugin:
-  image: quay.io/my-org/my-console-plugin:latest
-  replicas: 1
-  port: 9443
-  securityContext:
-    enabled: true
-    runAsNonRoot: true
-
-console:
-  enabled: true
-
-service:
-  type: ClusterIP
-  port: 9443
-  targetPort: 9443
-
-route:
-  enabled: true
-  host: ""
-  tls:
-    termination: reencrypt
-    insecureEdgeTerminationPolicy: Redirect
-```
-
-```yaml
-# charts/my-console-plugin/templates/consoleplugin.yaml
-apiVersion: console.openshift.io/v1
-kind: ConsolePlugin
-metadata:
-  name: {{ .Values.plugin.name }}
-spec:
-  displayName: {{ .Values.plugin.displayName }}
-  service:
-    name: {{ .Values.plugin.name }}
-    namespace: {{ .Release.Namespace }}
-    port: {{ .Values.service.port }}
-    basePath: '/'
-  proxy:
-    - type: Service
-      alias: my-backend-service
-      authorize: true
-      service:
-        name: my-backend-service
-        namespace: {{ .Release.Namespace }}
-        port: 8080
-```
-
-## 14. Security Best Practices
-
-### Access Control
-```typescript
-// Check user permissions before rendering actions
-import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
-
-const MyResourceActions: React.FC = ({ resource }) => {
-  const [canDelete] = useAccessReview({
-    group: 'my-group.io',
-    resource: 'myresources',
-    verb: 'delete',
-    name: resource.metadata.name,
-    namespace: resource.metadata.namespace,
-  });
-
-  return (
-    <ActionsMenu
-      actions={[
-        ...(canDelete ? [deleteAction] : []),
-        editAction,
-      ]}
-    />
-  );
-};
-```
-
-### Secure API Calls
-```typescript
-// Use console proxy for backend services
-const fetchBackendData = async (resourceName: string) => {
-  const response = await consoleFetch(
-    `/api/proxy/plugin/my-console-plugin/my-backend-service/api/v1/data/${resourceName}`
-  );
-  return response.json();
-};
-```
-
-## 15. Troubleshooting Common Issues
-
-### Plugin Not Loading
-- Check `console-extensions.json` syntax
-- Verify `exposedModules` mapping in `package.json`
-- Ensure webpack dev server is running with CORS headers
-- Check browser console for JavaScript errors
-
-### Styling Issues
-- Verify CSS class prefixes match plugin name
-- Use PatternFly CSS variables instead of hex colors
-- Check stylelint rules aren't being violated
-- Test in both light and dark modes
-
-### Translation Issues
-- Check i18n namespace matches plugin name with `plugin__` prefix
-- Run `npm run i18n` after adding new translation keys
-- Verify locale files are correctly formatted JSON
-
-### Build Failures
-- Update dependencies to compatible versions
-- Check TypeScript configuration for strict mode issues
-- Verify webpack configuration matches current versions
-
-## Quick Reference
-
-### Essential Commands
-```bash
-npm run start                    # Start dev server
-npm run start-console           # Start console
-npm run build                   # Production build
-npm run lint                    # Lint and fix code
-npm run i18n                    # Update translations
-npm run test-cypress-headless   # Run e2e tests
-```
-
-### Key Extension Types
-- `console.page/route` - Add new pages
-- `console.navigation/href` - Add navigation links
-- `console.page/resource/list` - Resource list pages
-- `console.page/resource/details` - Resource detail pages
-- `console.action/provider` - Resource actions
-- `console.tab` - Add tabs to existing pages
-
-### Critical Files
-- `console-extensions.json` - Plugin extensions
-- `package.json` `consolePlugin` - Plugin metadata
-- `webpack.config.ts` - Module federation
-- `tsconfig.json` - TypeScript config
-- `locales/` - Translation files
-
-This skill provides the foundation for developing robust, scalable OpenShift Console plugins that follow best practices and integrate seamlessly with the OpenShift Console ecosystem.
+# OpenShift Console Plugin Development
+
+This is the main skill for OpenShift Console plugin development. For comprehensive guidance, this skill has been organized into specialized skills covering different aspects of plugin development. Use this overview to navigate to the specific area you need.
+
+## Skill Overview
+
+The OpenShift Console plugin development workflow is broken down into focused, specialized skills:
+
+### 🏗️ [Project Setup](../openshift-console-plugin-setup/SKILL.md)
+**Essential first step** - Project initialization, dependencies, and version compatibility
+
+**When to use:** Starting a new plugin project, updating dependencies, or troubleshooting version compatibility issues.
+
+**Key topics:**
+- Project structure and essential files
+- OpenShift version compatibility matrix
+- PatternFly version mapping
+- TypeScript configuration
+- Package.json plugin metadata
+
+---
+
+### 🧩 [Console Extensions](../openshift-console-plugin-extensions/SKILL.md)
+**Core integration** - Console extension points, navigation, routes, and integration patterns
+
+**When to use:** Adding navigation items, creating custom pages, adding tabs to existing resources, or integrating with console features.
+
+**Key topics:**
+- Navigation extensions and sections
+- Page routes and resource pages
+- Tab extensions and action providers
+- Feature flags and conditional extensions
+- Extension best practices
+
+---
+
+### ⚛️ [Component Development](../openshift-console-plugin-components/SKILL.md)
+**UI building blocks** - React component patterns and development best practices
+
+**When to use:** Creating React components, building user interfaces, implementing component patterns, or optimizing component performance.
+
+**Key topics:**
+- Component development patterns
+- Resource list and detail components
+- Modal and form patterns
+- Error handling and loading states
+- TypeScript interfaces and accessibility
+
+---
+
+### 📊 [Data Management](../openshift-console-plugin-data/SKILL.md)
+**K8s integration** - Data fetching, SDK helpers, and state management
+
+**When to use:** Working with Kubernetes resources, implementing data fetching, managing application state, or optimizing API calls.
+
+**Key topics:**
+- K8s SDK helpers (useK8sWatchResource, k8sGet)
+- API group/version configuration
+- Resource mutations (create, update, delete)
+- Custom hooks and state management
+- Error handling and performance optimization
+
+---
+
+### 🎨 [UI Design & Styling](../openshift-console-plugin-styling/SKILL.md)
+**Visual consistency** - PatternFly usage, CSS best practices, and theming
+
+**When to use:** Styling components, ensuring design consistency, implementing responsive design, or troubleshooting theme compatibility.
+
+**Key topics:**
+- PatternFly component usage
+- CSS best practices and avoiding inline styles
+- Component styling approaches
+- Theme compatibility and responsive design
+- Performance optimization for styles
+
+---
+
+### 🔄 [Development Workflow](../openshift-console-plugin-development/SKILL.md)
+**Development process** - Local development, testing, linting, and debugging
+
+**When to use:** Setting up local development, running tests, debugging issues, or establishing development workflows.
+
+**Key topics:**
+- Local development setup (dev server + console container)
+- Testing strategies (Jest, Cypress)
+- Code quality and linting
+- Debugging techniques
+- Pre-commit workflows and best practices
+
+---
+
+### 🌍 [Internationalization](../openshift-console-plugin-i18n/SKILL.md)
+**Multi-language support** - Translation setup, namespace conventions, and localization
+
+**When to use:** Adding multi-language support, setting up translations, or implementing i18n in components and extensions.
+
+**Key topics:**
+- i18n namespace conventions
+- Translation file structure
+- Using translations in React components
+- Console extension i18n
+- Translation workflow and testing
+
+---
+
+### 🚀 [Deployment](../openshift-console-plugin-deployment/SKILL.md)
+**Production delivery** - Build, containerization, Helm charts, and CI/CD
+
+**When to use:** Building production releases, creating container images, setting up deployments, or configuring CI/CD pipelines.
+
+**Key topics:**
+- Webpack production builds
+- Containerization with Docker/Podman
+- Helm chart development
+- CI/CD integration (GitHub Actions)
+- Production deployment strategies
+
+---
+
+### 🏆 [Advanced Patterns](../openshift-console-plugin-advanced/SKILL.md)
+**Expert techniques** - Performance optimization, security, and complex patterns
+
+**When to use:** Optimizing performance, implementing security best practices, handling complex state management, or building advanced plugin features.
+
+**Key topics:**
+- Code splitting and lazy loading
+- Security best practices and CSP
+- Advanced state management patterns
+- Error handling and resilience
+- Performance optimization techniques
+
+---
+
+## Quick Start Guide
+
+### For New Plugin Development:
+1. **Start with [Setup](../openshift-console-plugin-setup/SKILL.md)** - Initialize project and configure dependencies
+2. **Define [Extensions](../openshift-console-plugin-extensions/SKILL.md)** - Plan your console integration points
+3. **Build [Components](../openshift-console-plugin-components/SKILL.md)** - Create your React components
+4. **Implement [Data](../openshift-console-plugin-data/SKILL.md)** - Add K8s resource integration
+5. **Apply [Styling](../openshift-console-plugin-styling/SKILL.md)** - Use PatternFly for consistent UI
+6. **Setup [Development](../openshift-console-plugin-development/SKILL.md)** - Configure testing and workflows
+
+### For Existing Plugin Enhancement:
+- **Adding features** → [Extensions](../openshift-console-plugin-extensions/SKILL.md) + [Components](../openshift-console-plugin-components/SKILL.md)
+- **Performance issues** → [Advanced Patterns](../openshift-console-plugin-advanced/SKILL.md)
+- **Multi-language** → [Internationalization](../openshift-console-plugin-i18n/SKILL.md)
+- **Production deployment** → [Deployment](../openshift-console-plugin-deployment/SKILL.md)
+
+### For Troubleshooting:
+- **Plugin not loading** → [Development](../openshift-console-plugin-development/SKILL.md)
+- **Version conflicts** → [Setup](../openshift-console-plugin-setup/SKILL.md)
+- **UI/styling issues** → [Styling](../openshift-console-plugin-styling/SKILL.md)
+- **Data/API problems** → [Data Management](../openshift-console-plugin-data/SKILL.md)
+
+## Development Principles
+
+### Core Principles Across All Skills:
+
+1. **Use SDK Helpers**: Always use OpenShift Console SDK helpers for K8s operations
+2. **PatternFly First**: Prefer PatternFly components over custom implementations
+3. **TypeScript**: Use TypeScript for type safety and better development experience
+4. **Accessibility**: Follow WCAG guidelines and use proper ARIA attributes
+5. **Internationalization**: Support multiple languages from the start
+6. **Testing**: Write tests for components, hooks, and critical user flows
+7. **Security**: Validate inputs, sanitize outputs, and follow security best practices
+8. **Performance**: Optimize for bundle size and runtime performance
+
+### Quality Standards:
+
+- ✅ **Linting**: Run `yarn lint` before every commit
+- ✅ **Testing**: Maintain comprehensive test coverage
+- ✅ **Type Safety**: Use TypeScript interfaces for all data structures
+- ✅ **Accessibility**: Test with screen readers and keyboard navigation
+- ✅ **Documentation**: Keep documentation updated with code changes
+- ✅ **Consistency**: Follow established patterns across the codebase
+
+## Common Tasks Quick Reference
+
+| Task | Primary Skill | Supporting Skills |
+|------|---------------|------------------|
+| Project initialization | [Setup](../openshift-console-plugin-setup/SKILL.md) | [Development](../openshift-console-plugin-development/SKILL.md) |
+| Add navigation menu | [Extensions](../openshift-console-plugin-extensions/SKILL.md) | [i18n](../openshift-console-plugin-i18n/SKILL.md) |
+| Create custom page | [Components](../openshift-console-plugin-components/SKILL.md) | [Extensions](../openshift-console-plugin-extensions/SKILL.md) |
+| Fetch K8s resources | [Data Management](../openshift-console-plugin-data/SKILL.md) | [Components](../openshift-console-plugin-components/SKILL.md) |
+| Style components | [Styling](../openshift-console-plugin-styling/SKILL.md) | [Components](../openshift-console-plugin-components/SKILL.md) |
+| Add translations | [i18n](../openshift-console-plugin-i18n/SKILL.md) | [Components](../openshift-console-plugin-components/SKILL.md) |
+| Deploy to production | [Deployment](../openshift-console-plugin-deployment/SKILL.md) | [Advanced](../openshift-console-plugin-advanced/SKILL.md) |
+| Optimize performance | [Advanced](../openshift-console-plugin-advanced/SKILL.md) | [Styling](../openshift-console-plugin-styling/SKILL.md) |
+
+## Getting Help
+
+Each specialized skill contains:
+- **Comprehensive examples** with copy-paste code
+- **Best practices** and common patterns
+- **Troubleshooting guides** for common issues
+- **Cross-references** to related skills
+- **Checklists** to ensure completeness
+
+Start with the skill most relevant to your current task, and follow the cross-references to related skills as needed.
