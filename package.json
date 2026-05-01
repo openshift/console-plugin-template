@@ -73,6 +73,11 @@
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.3"
   },
+  "dependenciesMeta": {
+    "cypress": {
+      "built": true
+    }
+  },
   "consolePlugin": {
     "name": "console-plugin-template",
     "version": "0.0.1",
@@ -85,5 +90,5 @@
       "@console/pluginAPI": "^4.21.0"
     }
   },
-  "packageManager": "yarn@4.13.0"
+  "packageManager": "yarn@4.14.1"
 }
