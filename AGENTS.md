@@ -12,7 +12,7 @@ This is a **template repository** for creating OpenShift Console dynamic plugins
 > **Only make changes that should be standard practice for ALL plugins created from this template.** If a change is specific to one plugin use case, it belongs in the instantiated plugin repository, not in this template.
 
 **Key Technologies:**
-- TypeScript + React 17
+- TypeScript + React 18
 - PatternFly 6 (UI component library)
 - Webpack 5 with Module Federation
 - react-i18next for internationalization
@@ -104,12 +104,9 @@ integration-tests/     # Cypress e2e tests
 
 ## TypeScript Configuration
 
-Current config has `strict: false` but enforces:
+Current config has `strict: true` and enforces:
 - `noUnusedLocals: true`
 - All files should use `.tsx` extension
-- Target: ES2020
-
-**Modernization opportunity:** When touching files, consider enabling stricter TypeScript checks.
 
 ## Common Development Tasks
 
@@ -177,8 +174,7 @@ helm upgrade -i my-plugin charts/openshift-console-plugin \
 4. **Module federation requires exact module mapping** - `exposedModules` must match `$codeRef` values
 5. **PatternFly CSS variables only** - hex colors break dark mode
 6. **No webpack HMR for extensions** - changes to `console-extensions.json` require restart
-7. **TypeScript not in strict mode** - legacy choice, can be modernized
-8. **React 17, not 18** - matches console's React version
+7. **React 18** - matches console's React version
 
 ## Extension Points
 
