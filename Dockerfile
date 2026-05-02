@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS build
 USER root
 
-ENV CYPRESS_INSTALL_BINARY=0
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app

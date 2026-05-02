@@ -16,7 +16,7 @@ This is a **template repository** for creating OpenShift Console dynamic plugins
 - PatternFly 6 (UI component library)
 - Webpack 5 with Module Federation
 - react-i18next for internationalization
-- Cypress for e2e testing
+- Playwright for e2e testing
 - Helm for deployment
 
 **Compatibility:** Requires OpenShift 4.12+ (uses ConsolePlugin CRD v1 API)
@@ -81,7 +81,7 @@ tsconfig.json          # TypeScript config (strict: false currently)
 webpack.config.ts      # Module federation + build config
 locales/               # i18n translation files
 charts/                # Helm chart for deployment
-integration-tests/     # Cypress e2e tests
+integration-tests/     # Playwright e2e tests
 ```
 
 ## Development Workflow
@@ -98,8 +98,9 @@ integration-tests/     # Cypress e2e tests
 - Follow existing code patterns in the repo
 
 ### Testing
-- `yarn test-cypress` - opens Cypress UI
-- `yarn test-cypress-headless` - runs Cypress in CI mode
+- `yarn test` - runs Jest unit tests
+- `yarn test-e2e` - opens Playwright in headed mode
+- `yarn test-e2e-headless` - runs Playwright in headless mode
 - Add e2e tests for new pages/features
 
 ## TypeScript Configuration
@@ -200,9 +201,9 @@ See [Console Plugin SDK README](https://github.com/openshift/console/tree/master
 
 ## Testing Strategy
 
-- **E2E tests (Cypress):** For user flows and page rendering
-- **Component tests:** Add when components have complex logic
-- **Test data attributes:** Use `data-test` attributes for selectors
+- **E2E tests (Playwright):** For user flows and page rendering
+- **Unit tests (Jest):** For component logic and plugin metadata
+- **Test data attributes:** Use `data-test` attributes for selectors (`testIdAttribute` is configured in `playwright.config.ts`)
 - Run tests locally before opening PRs
 
 ## References
@@ -219,5 +220,5 @@ See [Console Plugin SDK README](https://github.com/openshift/console/tree/master
 - **Add a page?** Update console-extensions.json + exposedModules + create component
 - **Style something?** Use PatternFly components and CSS variables, prefix custom classes
 - **Add translations?** Use `t()` function, run `yarn i18n` after
-- **Test changes?** Run locally with `yarn start` + `yarn start-console`, add Cypress tests
+- **Test changes?** Run locally with `yarn start` + `yarn start-console`, add Playwright tests
 - **Deploy?** Build image, push to registry, install via Helm chart

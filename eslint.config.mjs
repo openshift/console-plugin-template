@@ -5,7 +5,7 @@ import prettier from 'eslint-plugin-prettier/recommended';
 import reactHooks from 'eslint-plugin-react-hooks';
 import importX from 'eslint-plugin-import-x';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
-import cypress from 'eslint-plugin-cypress';
+import playwright from 'eslint-plugin-playwright';
 import jest from 'eslint-plugin-jest';
 import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
@@ -72,22 +72,13 @@ export default tseslint.config(
     },
   },
   {
-    files: ['integration-tests/**/*.{ts,tsx,js}'],
+    ...playwright.configs['flat/recommended'],
+    files: ['integration-tests/**/*.ts'],
     ...tseslint.configs.disableTypeChecked,
-    ...cypress.configs.recommended,
-    languageOptions: {
-      globals: {
-        require: 'readonly',
-        module: 'writable',
-      },
-    },
     rules: {
+      ...playwright.configs['flat/recommended'].rules,
       ...tseslint.configs.disableTypeChecked.rules,
-      ...cypress.configs.recommended.rules,
       'no-console': 'off',
-      '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
   prettier,

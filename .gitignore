@@ -2,8 +2,8 @@
 **/dist
 **/.DS_Store
 .devcontainer/dev.env
-integration-tests/videos
-integration-tests/screenshots
+integration-tests/.auth
+integration-tests/results
 
 # Jest
 coverage/
