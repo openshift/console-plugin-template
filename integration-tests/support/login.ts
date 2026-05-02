@@ -22,6 +22,7 @@ Cypress.Commands.add(
     username: string = KUBEADMIN_USERNAME,
     password: string = Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'),
   ) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const baseURL = Cypress.config('baseUrl')!;
 
     // Make sure we clear the cookie in case a previous test failed to logout.

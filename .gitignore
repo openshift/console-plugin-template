@@ -5,6 +5,10 @@
 integration-tests/videos
 integration-tests/screenshots
 
+# Jest
+coverage/
+jest-junit.xml
+
 # Yarn v4 (Berry)
 .yarn/*
 install-state.gz
