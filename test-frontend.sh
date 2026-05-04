@@ -20,3 +20,9 @@ if ! yarn dedupe --strategy highest --check ; then
   git --no-pager diff
   exit 1
 fi
+
+if [ "$OPENSHIFT_CI" = true ]; then
+  JEST_SUITE_NAME="Plugin unit tests" JEST_JUNIT_OUTPUT_DIR="$ARTIFACT_DIR" yarn run test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+else
+  yarn run test
+fi
