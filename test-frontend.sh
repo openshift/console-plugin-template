@@ -6,6 +6,10 @@ set -euo pipefail
 OPENSHIFT_CI=${OPENSHIFT_CI:=false}
 ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
 
+if [ ! -d node_modules ]; then
+  yarn install --immutable
+fi
+
 yarn i18n
 GIT_STATUS="$(git status --short --untracked-files -- locales)"
 if [ -n "$GIT_STATUS" ]; then
