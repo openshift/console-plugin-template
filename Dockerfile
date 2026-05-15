@@ -1,10 +1,13 @@
-FROM registry.access.redhat.com/ubi9/nodejs-18:latest AS build
+FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS build
 USER root
-RUN command -v yarn || npm i -g yarn
+
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app
-RUN yarn install && yarn build
+
+RUN LOCAL_YARN="node $(awk '/yarnPath:/{print $2}' .yarnrc.yml)" && \
+    $LOCAL_YARN install --immutable && $LOCAL_YARN build
 
 FROM registry.access.redhat.com/ubi9/nginx-120:latest
 

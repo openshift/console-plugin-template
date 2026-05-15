@@ -6,10 +6,27 @@ set -euo pipefail
 OPENSHIFT_CI=${OPENSHIFT_CI:=false}
 ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
 
+if [ ! -d node_modules ]; then
+  yarn install --immutable
+fi
+
 yarn i18n
 GIT_STATUS="$(git status --short --untracked-files -- locales)"
 if [ -n "$GIT_STATUS" ]; then
   echo "i18n files are not up to date. Run 'yarn i18n' then commit changes."
   git --no-pager diff
   exit 1
+fi
+
+if ! yarn dedupe --strategy highest --check ; then
+  echo "You have duplicate version resolutions of some packages in yarn.lock. Run 'yarn dedupe' and commit the updated yarn.lock."
+  yarn dedupe --strategy highest
+  git --no-pager diff
+  exit 1
+fi
+
+if [ "$OPENSHIFT_CI" = true ]; then
+  JEST_SUITE_NAME="Plugin unit tests" JEST_JUNIT_OUTPUT_DIR="$ARTIFACT_DIR" yarn run test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+else
+  yarn run test
 fi

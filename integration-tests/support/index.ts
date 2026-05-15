@@ -1,7 +1,9 @@
-// Import commands.js using ES2015 syntax:
-import './login';
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
-export const checkErrors = () =>
-  cy.window().then((win) => {
-    assert.isTrue(!win.windowError, win.windowError);
-  });
+export async function checkErrors(page: Page) {
+  const windowError = await page.evaluate(
+    () => (window as Window & { windowError?: string }).windowError,
+  );
+  expect(windowError, 'Console JS error detected').toBeUndefined();
+}

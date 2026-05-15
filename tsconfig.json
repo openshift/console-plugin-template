@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2020",
-    "sourceMap": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowJs": true,
-    "strict": false,
-    "noUnusedLocals": true
+    "strict": true,
+    "noUnusedLocals": true,
+    "types": ["jest", "@testing-library/jest-dom", "node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", ".yarn"],
   "ts-node": {
     "files": true,
     "transpileOnly": true,
