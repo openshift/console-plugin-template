@@ -12,10 +12,12 @@ This is a **template repository** for creating OpenShift Console dynamic plugins
 > **Only make changes that should be standard practice for ALL plugins created from this template.** If a change is specific to one plugin use case, it belongs in the instantiated plugin repository, not in this template.
 
 **Key Technologies:**
-- TypeScript + React 18
-- PatternFly 6 (UI component library)
-- Webpack 5 with Module Federation
+- TypeScript 5.9+ / React 18
+- **PatternFly 6.4+** (UI component library — all generated code MUST target PF6 exclusively)
+- OpenShift Console Plugin SDK 4.22+ (console runtime is React 18)
+- Webpack 5.106+ with Module Federation
 - react-i18next for internationalization
+- react-router 7.x
 - Playwright for e2e testing
 - Helm for deployment
 
@@ -44,12 +46,51 @@ This plugin uses webpack module federation to load at runtime into the OpenShift
 
 **IMPORTANT:** The `.stylelintrc.yaml` enforces strict rules to prevent breaking console:
 
-- **NO hex colors** - use PatternFly CSS variables (e.g., `var(--pf-v6-global-palette--blue-500)`)
-- **NO naked element selectors** (like `table`, `div`) - prevents overwriting console styles
-- **NO `.pf-` or `.co-` prefixed classes** - these are reserved for PatternFly and console
+- **NO hex colors** — use PatternFly 6 CSS variables only:
+  - **Semantic tokens (preferred):** `var(--pf-t--global--text--color--brand--default)`, `var(--pf-t--global--background--color--primary--default)`
+  - **Global palette tokens:** `var(--pf-v6-global--palette--blue-500)`, `var(--pf-v6-global--palette--red-500)`
+  - **Component tokens:** `var(--pf-v6-c-button--PaddingTop)`
+  - Token reference: https://www.patternfly.org/tokens/all-patternfly-tokens
+- **NO naked element selectors** (like `table`, `div`) — prevents overwriting console styles
+- **NO `.pf-` or `.co-` prefixed classes** — these are reserved for PatternFly and console
 - **Prefix all custom classes** with plugin name (e.g., `console-plugin-template__nice`)
 
 Don't disable these rules without understanding they protect against layout breakage!
+
+### PatternFly 6 Component Patterns (MUST follow)
+
+All generated code must use PF6 component APIs exclusively:
+
+- **EmptyState:** Use props-based API — `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h4">`. Do NOT use `<EmptyStateHeader>`, `<EmptyStateIcon>`, or nested `<Title>` (these are PF5 patterns that don't exist in PF6).
+- **Content:** Use `<Content>` component (not `<Text>` or `<TextContent>` which were PF5).
+- **Label status:** Use `status` prop (`status="success"`, `status="danger"`) not `variant` for colors.
+- **PageSection:** Use `variant="default"` or `variant="secondary"` (not `variant="light"` which is PF5).
+- **Spinner:** Use `<Spinner size="lg">` for loading states (not custom `co-m-loader` divs).
+- **Table imports:** `import { Table, Thead, Tbody, Tr, Th, Td } from '@patternfly/react-table'` for PF6 composable tables.
+- **Charts:** `import { ChartDonut } from '@patternfly/react-charts/victory'` (not from root).
+- **CSS class prefix:** All custom classes use `console-plugin-template__` prefix. Never use `co-m-*`, `pf-c-*`, `pf-m-*`, or other OpenShift/PatternFly reserved prefixes.
+- **Chip → Label:** PF6 replaced Chip with Label. Use `<Label>` for all tag/chip use cases.
+- **Tile → Card:** PF6 replaced Tile with Card. Use `<Card isSelectable>` for tile-like behavior.
+- **Breakpoints:** PF6 uses rem units (not px) for breakpoint tokens (`--pf-t--global--breakpoint--md` = 48rem = 768px).
+- **Component animations (PF 6.3+):** Opt-in via `hasAnimations` prop on expandable components (Table, Accordion, etc.). Run `npx @patternfly/pf-codemods --only enable-animations /path-to-src` to auto-add.
+
+### PatternFly Upgrade Resources
+
+- **PF codemods:** `npx @patternfly/pf-codemods@latest <path> --v6 --fix` — auto-fixes PF5→PF6 issues
+- **Class name updater:** Updates `pf-v5` prefixes to `pf-v6`
+- **Token updater:** Updates global CSS variables and React tokens to PF6 semantic tokens
+- **Upgrade guide:** https://www.patternfly.org/get-started/upgrade
+- **Release highlights:** https://www.patternfly.org/get-started/release-highlights
+
+### PatternFly Cursor Plugins Available
+
+This workspace has PatternFly Cursor Marketplace plugins installed:
+- **pf-import-checker** — audits and fixes PF import paths
+- **pf-component-structure** — structural audit for correct PF6 nesting/hierarchy
+- **pf-project-scaffolder** — scaffolds PF6-safe dependencies and imports
+- **pf-class-migration-scanner** — scans for legacy PF class usage and recommends PF6 replacements
+
+Use these when writing, reviewing, or refactoring PatternFly UI code.
 
 ## Internationalization (i18n)
 
@@ -171,11 +212,13 @@ helm upgrade -i my-plugin charts/openshift-console-plugin \
 
 1. **Template, not fork:** Users should use "Use this template", not fork
 2. **i18n namespace must match ConsolePlugin resource name** with `plugin__` prefix
-3. **CSS class prefixes prevent style conflicts** - always prefix with plugin name
-4. **Module federation requires exact module mapping** - `exposedModules` must match `$codeRef` values
-5. **PatternFly CSS variables only** - hex colors break dark mode
-6. **No webpack HMR for extensions** - changes to `console-extensions.json` require restart
-7. **React 18** - matches console's React version
+3. **CSS class prefixes prevent style conflicts** — always prefix with plugin name
+4. **Module federation requires exact module mapping** — `exposedModules` must match `$codeRef` values
+5. **PatternFly 6 CSS variables only** — hex colors break dark mode; prefer `--pf-t--*` semantic tokens
+6. **No webpack HMR for extensions** — changes to `console-extensions.json` require restart
+7. **React 18** — matches console's React version
+8. **PatternFly 6 only** — do NOT use PF5 component APIs (EmptyStateHeader, Text, TextContent, Chip, Tile, variant="light")
+9. **PF6 codemods available** — run `npx @patternfly/pf-codemods@latest <path> --v6` for automated PF5→PF6 migration
 
 ## Extension Points
 
@@ -209,7 +252,10 @@ See [Console Plugin SDK README](https://github.com/openshift/console/tree/master
 ## References
 
 - [Console Plugin SDK](https://github.com/openshift/console/tree/master/frontend/packages/console-dynamic-plugin-sdk)
-- [PatternFly React](https://www.patternfly.org/get-started/develop)
+- [PatternFly 6 React](https://www.patternfly.org/get-started/develop)
+- [PatternFly 6 CSS Tokens](https://www.patternfly.org/tokens/all-patternfly-tokens)
+- [PatternFly 6 Components](https://www.patternfly.org/components/all-components)
+- [PF5 → PF6 Upgrade Guide](https://www.patternfly.org/get-started/upgrade)
 - [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
 
 ## Quick Decision Guide

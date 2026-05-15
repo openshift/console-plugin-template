@@ -33,9 +33,12 @@ import {
 import { EventModel, getInvolvedObjectKind, K8sEvent } from './components/crds/Events';
 import { dump as yamlDump } from 'js-yaml';
 
-// YAML syntax colors (on black background): blue (keys), mustard yellow (values)
-const YAML_KEY_COLOR = '#60a5fa';
-const YAML_VALUE_COLOR = '#eab308';
+// YAML syntax colors — use PF6 semantic tokens for dark mode support
+const YAML_KEY_COLOR = 'var(--pf-t--global--text--color--brand--default)';
+const YAML_VALUE_COLOR = 'var(--pf-t--global--text--color--status--warning--default)';
+const YAML_COMMENT_COLOR = 'var(--pf-t--global--text--color--subtle)';
+const CODE_BG_COLOR = 'var(--pf-t--global--background--color--primary--hover)';
+const CODE_BORDER_COLOR = 'var(--pf-t--global--border--color--default)';
 const HIDDEN_VALUE_PLACEHOLDER = '********';
 
 function colorizeYaml(yamlString: string): React.ReactNode {
@@ -73,7 +76,7 @@ function colorizeYaml(yamlString: string): React.ReactNode {
         // Comment or continuation line: use value color for non-empty, keep structure
         if (line.trim().startsWith('#')) {
           return (
-            <span key={i} style={{ color: '#6b7280' }}>
+            <span key={i} style={{ color: YAML_COMMENT_COLOR }}>
               {line}
               {'\n'}
             </span>
@@ -91,7 +94,7 @@ function colorizeYaml(yamlString: string): React.ReactNode {
 }
 
 export const ResourceInspect: React.FC = () => {
-  const { t } = useTranslation('plugin__ocp-secrets-management');
+  const { t } = useTranslation('plugin__console-plugin-template');
 
   // State for revealing sensitive data (separate for spec and status)
   const [showSpecSensitiveData, setShowSpecSensitiveData] = React.useState(false);
@@ -209,7 +212,7 @@ export const ResourceInspect: React.FC = () => {
             isHorizontal
             style={{
               rowGap: '0.25rem',
-              background: '#1e1e1e',
+              background: CODE_BG_COLOR,
               paddingTop: '16px',
               paddingLeft: '16px',
               paddingBottom: '16px',
@@ -350,9 +353,9 @@ export const ResourceInspect: React.FC = () => {
     }
 
     const cardStyle = {
-      background: '#1e1e1e',
+      background: CODE_BG_COLOR,
       borderRadius: '4px',
-      border: '1px solid #374151',
+      border: `1px solid ${CODE_BORDER_COLOR}`,
     };
     return (
       <Card style={cardStyle}>
@@ -386,15 +389,15 @@ export const ResourceInspect: React.FC = () => {
     }
 
     const cardStyle = {
-      background: '#1e1e1e',
+      background: CODE_BG_COLOR,
       borderRadius: '4px',
-      border: '1px solid #374151',
+      border: `1px solid ${CODE_BORDER_COLOR}`,
     };
     return (
       <Card style={cardStyle}>
         <CardTitle style={{ color: 'var(--pf-t--color--blue--30)' }}>{t('Annotations')}</CardTitle>
         <CardBody>
-          <DescriptionList isHorizontal style={{ rowGap: '0.25rem', background: '#1e1e1e' }}>
+          <DescriptionList isHorizontal style={{ rowGap: '0.25rem', background: CODE_BG_COLOR }}>
             {Object.entries(annotations).map(([key, value]) => (
               <DescriptionListGroup
                 key={key}
@@ -510,8 +513,8 @@ export const ResourceInspect: React.FC = () => {
               overflow: 'auto',
               fontSize: '13px',
               maxHeight: '400px',
-              background: '#1e1e1e',
-              border: '1px solid #374151',
+              background: CODE_BG_COLOR,
+              border: `1px solid ${CODE_BORDER_COLOR}`,
             }}
           >
             {shouldHideContent ? (
@@ -560,8 +563,8 @@ export const ResourceInspect: React.FC = () => {
               overflow: 'auto',
               fontSize: '13px',
               maxHeight: '400px',
-              background: '#1e1e1e',
-              border: '1px solid #374151',
+              background: CODE_BG_COLOR,
+              border: `1px solid ${CODE_BORDER_COLOR}`,
             }}
           >
             {shouldHideContent ? (
@@ -603,7 +606,7 @@ export const ResourceInspect: React.FC = () => {
         </CardTitle>
         <CardBody>
           <div style={{ overflowX: 'auto' }}>
-            <table className="pf-c-table pf-m-compact pf-m-grid-md" style={{ width: '100%' }}>
+            <table className="console-plugin-template__table" style={{ width: '100%' }}>
               <thead>
                 <tr>
                   <th>{t('Pod Name')}</th>
@@ -660,14 +663,14 @@ export const ResourceInspect: React.FC = () => {
             <div
               style={{
                 overflowX: 'auto',
-                background: '#1e1e1e',
+                background: CODE_BG_COLOR,
                 borderRadius: '4px',
-                border: '1px solid #374151',
+                border: `1px solid ${CODE_BORDER_COLOR}`,
                 paddingLeft: '16px',
                 paddingTop: '16px',
               }}
             >
-              <table className="pf-c-table pf-m-grid-md" style={{ width: '100%' }}>
+              <table className="console-plugin-template__table" style={{ width: '100%' }}>
                 <thead>
                   <tr>
                     <th style={{ paddingTop: '0.375rem', paddingBottom: '0.375rem' }}>
@@ -760,7 +763,7 @@ export const ResourceInspect: React.FC = () => {
 
   if (!model) {
     return (
-      <div className="co-m-pane__body">
+      <div className="console-plugin-template__inspect-page">
         <Alert variant={AlertVariant.danger} title={t('Invalid resource type')} isInline>
           {t('The resource type "{resourceType}" is not supported.', { resourceType })}
         </Alert>
@@ -773,10 +776,10 @@ export const ResourceInspect: React.FC = () => {
 
   if (!allLoaded) {
     return (
-      <div className="co-m-loader co-an-fade-in-out">
-        <div className="co-m-loader-dot__one"></div>
-        <div className="co-m-loader-dot__two"></div>
-        <div className="co-m-loader-dot__three"></div>
+      <div className="console-plugin-template__loader">
+        <div className="console-plugin-template__loader-dot"></div>
+        <div className="console-plugin-template__loader-dot"></div>
+        <div className="console-plugin-template__loader-dot"></div>
       </div>
     );
   }
@@ -787,7 +790,7 @@ export const ResourceInspect: React.FC = () => {
 
   if (anyError) {
     return (
-      <div className="co-m-pane__body">
+      <div className="console-plugin-template__inspect-page">
         <Alert variant={AlertVariant.danger} title={t('Error loading resource')} isInline>
           {anyError.message}
         </Alert>
@@ -797,7 +800,7 @@ export const ResourceInspect: React.FC = () => {
 
   if (!resource) {
     return (
-      <div className="co-m-pane__body">
+      <div className="console-plugin-template__inspect-page">
         <Alert variant={AlertVariant.warning} title={t('Resource not found')} isInline>
           {t('The {resourceType} "{name}" was not found.', {
             resourceType: getResourceTypeDisplayName(),
@@ -814,13 +817,16 @@ export const ResourceInspect: React.FC = () => {
         <title>{t('{resourceType} details', { resourceType: getResourceTypeDisplayName() })}</title>
       </Helmet>
 
-      <div className="co-m-pane__body">
-        <div className="co-m-pane__heading">
-          <div className="co-m-pane__name co-resource-item">
+      <div className="console-plugin-template__inspect-page">
+        <div className="console-plugin-template__inspect-heading">
+          <div className="console-plugin-template__resource-name">
             <Button variant="plain" onClick={handleBackClick} style={{ marginRight: '16px' }}>
               <ArrowLeftIcon />
             </Button>
-            <KeyIcon className="co-m-resource-icon" style={{ marginRight: '8px' }} />
+            <KeyIcon
+              className="console-plugin-template__resource-icon"
+              style={{ marginRight: '8px' }}
+            />
             <Title headingLevel="h1" size="lg">
               {getResourceTypeDisplayName()}: {name}
             </Title>

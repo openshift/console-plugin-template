@@ -1,12 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  EmptyState,
-  EmptyStateBody,
-  Title,
-  Alert,
-  AlertVariant,
-} from '@patternfly/react-core';
+import { EmptyState, EmptyStateBody, Alert, AlertVariant, Spinner } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 
 interface Column {
@@ -25,7 +19,6 @@ interface ResourceTableProps {
   error?: string;
   emptyStateTitle?: string;
   emptyStateBody?: string;
-  /** When set, fallback empty state body is project-aware (e.g. "in project X" vs "in the demo project"). */
   selectedProject?: string;
   'data-test'?: string;
 }
@@ -40,31 +33,27 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
   selectedProject,
   'data-test': dataTest,
 }) => {
-  const { t } = useTranslation('plugin__ocp-secrets-management');
+  const { t } = useTranslation('plugin__console-plugin-template');
 
   const defaultEmptyStateBody =
     selectedProject && selectedProject !== 'all'
-      ? t('No resources of this type are currently available in project {{project}}.', { project: selectedProject })
+      ? t('No resources of this type are currently available in project {{project}}.', {
+          project: selectedProject,
+        })
       : t('No resources of this type are currently available in the demo project.');
 
   if (loading) {
     return (
-      <div className="co-m-loader co-an-fade-in-out" data-test={`${dataTest}-loading`}>
-        <div className="co-m-loader-dot__one"></div>
-        <div className="co-m-loader-dot__two"></div>
-        <div className="co-m-loader-dot__three"></div>
+      <div className="console-plugin-template__loader" data-test={`${dataTest}-loading`}>
+        <Spinner size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="co-m-pane__body" data-test={`${dataTest}-error`}>
-        <Alert
-          variant={AlertVariant.danger}
-          title={t('Error loading resources')}
-          isInline
-        >
+      <div className="console-plugin-template__table-message" data-test={`${dataTest}-error`}>
+        <Alert variant={AlertVariant.danger} title={t('Error loading resources')} isInline>
           {error}
         </Alert>
       </div>
@@ -73,47 +62,37 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
 
   if (rows.length === 0) {
     return (
-      <div className="co-m-pane__body" data-test={`${dataTest}-empty`}>
-        <EmptyState>
-          <SearchIcon className="co-m-empty-state__icon" />
-          <Title size="lg" headingLevel="h4">
-            {emptyStateTitle || t('No resources found')}
-          </Title>
-          <EmptyStateBody>
-            {emptyStateBody ?? defaultEmptyStateBody}
-          </EmptyStateBody>
+      <div className="console-plugin-template__table-message" data-test={`${dataTest}-empty`}>
+        <EmptyState
+          titleText={emptyStateTitle || t('No resources found')}
+          icon={SearchIcon}
+          headingLevel="h4"
+        >
+          <EmptyStateBody>{emptyStateBody ?? defaultEmptyStateBody}</EmptyStateBody>
         </EmptyState>
       </div>
     );
   }
 
-  // Calculate column widths - distribute evenly if no widths specified
   const totalSpecifiedWidth = columns.reduce((sum, col) => sum + (col.width || 0), 0);
   const hasSpecifiedWidths = totalSpecifiedWidth > 0;
   const defaultWidth = hasSpecifiedWidths ? undefined : 100 / columns.length;
 
   return (
-    <div className="co-m-table-grid co-m-table-grid--bordered" data-test={dataTest}>
-      <div className="table-responsive">
-        <table className="table table-hover" style={{ tableLayout: 'fixed', width: '100%' }}>
+    <div className="console-plugin-template__resource-table" data-test={dataTest}>
+      <div className="console-plugin-template__table-responsive">
+        <table className="console-plugin-template__table">
           <thead>
             <tr>
               {columns.map((column, index) => {
-                const width = hasSpecifiedWidths 
-                  ? `${(column.width || 0)}%`
-                  : `${defaultWidth}%`;
-                
+                const width = hasSpecifiedWidths ? `${column.width || 0}%` : `${defaultWidth}%`;
+
                 return (
-                  <th 
-                    key={index} 
+                  <th
+                    key={index}
+                    className="console-plugin-template__table-th"
                     role="columnheader"
-                    style={{ 
-                      width,
-                      paddingLeft: '1rem',
-                      paddingRight: '1rem',
-                      textAlign: 'left',
-                      verticalAlign: 'middle'
-                    }}
+                    style={{ width }}
                   >
                     {column.title}
                   </th>
@@ -123,19 +102,9 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
-              <tr key={rowIndex}>
+              <tr key={rowIndex} className="console-plugin-template__table-tr">
                 {row.cells.map((cell, cellIndex) => (
-                  <td 
-                    key={cellIndex}
-                    style={{
-                      paddingLeft: '1rem',
-                      paddingRight: '1rem',
-                      textAlign: 'left',
-                      verticalAlign: 'middle',
-                      wordWrap: 'break-word',
-                      overflow: 'hidden'
-                    }}
-                  >
+                  <td key={cellIndex} className="console-plugin-template__table-td">
                     {cell}
                   </td>
                 ))}

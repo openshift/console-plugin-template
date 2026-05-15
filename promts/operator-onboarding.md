@@ -3,6 +3,8 @@
 
 Copy the template, fill in operator details, run it. Works on a clean repo (after `git stash`) or with existing operators already added.
 
+> **PatternFly 6 ONLY:** All generated code MUST target PatternFly 6.4+ exclusively. PF6.3+ supports React 17, 18, and 19 ([release highlights](https://www.patternfly.org/get-started/release-highlights)). Use PF6 component APIs (`EmptyState` with `titleText`/`icon` props, `Content` not `Text`, `Spinner` not `co-m-loader`, `Label` not `Chip`, `Card` not `Tile`), PF6 semantic tokens (`--pf-t--*`), and PF6 global tokens (`--pf-v6-*`). Never use PF5 patterns, `co-m-*` classes, or hex colors.
+
 ## Mandatory two-phase workflow (AI / Cursor)
 
 This document defines **two phases in one task**. **Do not stop after Phase 1.**
@@ -80,7 +82,7 @@ All operator dashboards must follow these styling patterns for a professional, c
 
 The project already includes:
 
-- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Renders a plain `<table>` with thead/tbody using **plugin-prefixed CSS classes** (`console-plugin-template__table`, `__table-th`, `__table-td`, etc.), loading (three-dot animated loader), error Alert, empty EmptyState, or data rows. Use this for **all** operator resource tables; do not use VirtualizedTable. Expects corresponding CSS classes defined in operator CSS file (see Step 7).
+- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Uses **PF6 components** (`<Spinner>` for loading, PF6 `<EmptyState>` with `titleText`/`icon`/`headingLevel` props) and **plugin-prefixed CSS classes** (`console-plugin-template__table`, `__table-th`, `__table-td`, etc.). Use this for **all** operator resource tables; do not use VirtualizedTable. Expects corresponding CSS classes defined in operator CSS file (see Step 7).
 - **`ResourceTableRowActions`** (exported from the same file) — Renders Inspect + Delete **buttons** for one row. Structure:
   ```tsx
   <div className=”console-plugin-template__action-buttons”>

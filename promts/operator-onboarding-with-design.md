@@ -8,7 +8,9 @@ Extends the base operator-onboarding workflow with **design-first UI** from Figm
 This prompt combines K8s operator dashboard generation with custom UI/UX specifications. It:
 - Retains **all functional logic** from operator-onboarding.md (CRD scanning, table generation, inspect pages)
 - Integrates **design code** (Figma exports, Google Stitch components, Tailwind configs, or custom CSS)
-- Maps design tokens to **PatternFly-compatible** variables while maintaining console plugin constraints
+- Maps design tokens to **PatternFly 6** variables while maintaining console plugin constraints
+
+> **PatternFly 6 ONLY:** All generated code MUST target PatternFly 6 exclusively. Do NOT use PF5 component APIs, tokens, or patterns. See [PatternFly 6 Enforcement](#patternfly-6-enforcement) for details.
 
 ## When to Use This vs. Standard operator-onboarding.md
 
@@ -108,10 +110,91 @@ This document defines **three phases in one task**. **Do not stop after Phase 1 
 
 ---
 
+## PatternFly 6 Enforcement
+
+All generated code MUST use PatternFly 6 APIs, tokens, and patterns. This is non-negotiable.
+
+### PF6 Component API (use these)
+
+| Component | PF6 API | PF5 API (DO NOT USE) |
+|-----------|---------|---------------------|
+| **EmptyState** | `<EmptyState titleText="..." icon={SearchIcon} headingLevel="h4">` | ~~`<EmptyStateHeader>`, `<EmptyStateIcon>`, nested `<Title>`~~ |
+| **Text content** | `<Content component="p">` | ~~`<Text>`, `<TextContent>`~~ |
+| **Chip → Label** | `<Label>` | ~~`<Chip>`~~ (removed in PF6) |
+| **Tile → Card** | `<Card isSelectable>` | ~~`<Tile>`~~ (removed in PF6) |
+| **Label status** | `<Label status="success">` | ~~`<Label variant="..." color="green">`~~ |
+| **PageSection** | `<PageSection variant="default">` | ~~`<PageSection variant="light">`~~ |
+| **Loading** | `<Spinner size="lg">` | ~~`co-m-loader` div pattern~~ |
+| **Table** | `import { Table, Thead, Tbody, Tr, Th, Td } from '@patternfly/react-table'` | ~~raw `<table>` with `pf-c-table` classes~~ |
+| **Charts** | `import { ChartDonut } from '@patternfly/react-charts/victory'` | ~~import from `@patternfly/react-charts` root~~ |
+| **Expandable section** | `<ExpandableSection>` (no `isActive` prop) | ~~`<ExpandableSection isActive>`~~ |
+| **Breakpoints** | rem units (`--pf-t--global--breakpoint--md` = 48rem) | ~~pixel values (768px)~~ |
+
+### PF6 CSS Token Types
+
+| Token type | Pattern | Example | When to use |
+|------------|---------|---------|-------------|
+| **Semantic tokens (preferred)** | `--pf-t--*` | `var(--pf-t--global--text--color--brand--default)` | Contextual meaning (text, background, border) |
+| **Global palette tokens** | `--pf-v6-global--palette--*` | `var(--pf-v6-global--palette--blue-500)` | Direct color values when no semantic token fits |
+| **Global spacing tokens** | `--pf-t--global--spacer--*` | `var(--pf-t--global--spacer--md)` | Spacing (xs, sm, md, lg, xl) |
+| **Component tokens** | `--pf-v6-c-*` | `var(--pf-v6-c-button--PaddingTop)` | Component-specific overrides |
+
+**Token reference:** https://www.patternfly.org/tokens/all-patternfly-tokens
+
+### PF6 Import Patterns
+
+```tsx
+// Core components (PF 6.4+)
+import { Button, Content, EmptyState, EmptyStateBody, PageSection, Spinner, Title } from '@patternfly/react-core';
+
+// Icons
+import { SearchIcon, CheckCircleIcon } from '@patternfly/react-icons';
+
+// Composable table (PF6)
+import { Table, Thead, Tbody, Tr, Th, Td } from '@patternfly/react-table';
+
+// Charts (PF6 — must use /victory subpath)
+import { ChartDonut } from '@patternfly/react-charts/victory';
+```
+
+### React & Router Version
+
+- **React 17** at build time (SDK 4.21.0 validates shared modules against React 17)
+- **React 18** at runtime (OpenShift Console upgraded Jan-April 2026)
+- **PatternFly 6.3+** supports React 17, 18, and **19** (non-breaking — [release highlights](https://www.patternfly.org/get-started/release-highlights))
+- **react-router 5.x** in SDK shared modules; console migrating to 7.x
+- Template will upgrade React/router when SDK publishes stable release with matching versions
+
+### PF6 Upgrade Tooling
+
+For migrating existing PF5 code in the generated plugin:
+```bash
+# Auto-fix PF5→PF6 component/prop changes
+npx @patternfly/pf-codemods@latest src --v6 --fix
+
+# Update CSS class prefixes (pf-v5 → pf-v6)
+npx @patternfly/pf-codemods@latest src --v6 --fix --only class-name-updater
+
+# Update CSS variables and React tokens to PF6 semantic tokens
+npx @patternfly/pf-codemods@latest src --v6 --fix --only tokens-update
+
+# Enable component animations (opt-in, PF 6.3+)
+npx @patternfly/pf-codemods --only enable-animations src
+```
+
+### CSS Class Rules
+
+- ✅ Plugin-prefixed: `console-plugin-template__my-element`
+- ❌ OpenShift console classes: `co-m-*`, `co-an-*`
+- ❌ PatternFly internal classes: `pf-c-*`, `pf-m-*`, `pf-v5-*`
+- ❌ Raw HTML classes: `table`, `table-hover`, `table-responsive`
+
+---
+
 ## Critical Constraints (Design Integration)
 
 ### Must Maintain from operator-onboarding.md:
-1. ✅ **PatternFly CSS variables only** — no direct hex colors in code
+1. ✅ **PatternFly 6 CSS variables only** — no direct hex colors in code
 2. ✅ **Plugin-prefixed classes** (`console-plugin-template__`)
 3. ✅ **No OpenShift console classes** (`co-m-*`, `.pf-*` structure)
 4. ✅ **React Router for navigation** (no `<a href>`)
@@ -119,10 +202,10 @@ This document defines **three phases in one task**. **Do not stop after Phase 1 
 6. ✅ **ResourceTable/ResourceInspect patterns** maintained
 
 ### New Design Constraints:
-1. ✅ **Map design colors to PatternFly semantic variables** (not raw hex)
-   - Example: Figma `#1E40AF` (blue-800) → `var(--pf-v6-global-palette--blue-800)`
+1. ✅ **Map design colors to PatternFly 6 semantic variables** (not raw hex)
+   - Example: Figma `#1E40AF` (blue-800) → `var(--pf-v6-global--palette--blue-800)`
 2. ✅ **Override PatternFly variables via CSS custom properties** (not inline styles)
-3. ✅ **Preserve PatternFly component API** (props, variants) while restyling
+3. ✅ **Preserve PatternFly 6 component API** (props, variants) while restyling
 4. ✅ **Document all design deviations** from PatternFly defaults
 5. ✅ **Maintain dark mode compatibility** (design must provide dark variants)
 6. ✅ **Respect console plugin theming** (variables can be overridden by console)

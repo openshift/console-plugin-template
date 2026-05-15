@@ -20,7 +20,7 @@ Copy the template, fill in operator details, run it. Works on a clean repo (afte
 
 The project already includes:
 
-- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Renders a plain `<table>` with thead/tbody, loading (three-dot loader), error Alert, empty EmptyState, or data rows. Use this for **all** operator resource tables; do not use VirtualizedTable for the dashboard tables.
+- **`src/components/ResourceTable.tsx`** — Shared table: accepts `columns` (title, optional width), `rows` (cells as React nodes), `loading`, `error`, `emptyStateTitle`, `emptyStateBody`, `selectedProject`, `data-test`. Uses **PF6 components** (`<Spinner>` for loading, PF6 `<EmptyState>` with `titleText`/`icon`/`headingLevel` props) and **plugin-prefixed CSS classes** (`console-plugin-template__table`, `__table-th`, `__table-td`, etc.). Use this for **all** operator resource tables; do not use VirtualizedTable for the dashboard tables.
 - **`ResourceTableRowActions`** (exported from the same file) — Renders Inspect + Delete **buttons** for one row. Accepts `resource: K8sResourceCommon` and `inspectHref: string`. Use it in the Actions cell of each row so `useDeleteModal` is called per row (hooks cannot be called inside `.map()`).
 - **`src/ResourceInspect.tsx`** — Shared resource detail page: Card + Grid layout, back button, Metadata/Labels/Annotations/Spec/Status/Events cards, optional "Show/Hide sensitive data" for spec/status. When adding a new operator, **add** entries to `DISPLAY_NAMES`, `getResourceModel(resourceType)`, and `getPagePath(resourceType)`; do not rewrite the component or change its layout/styling pattern.
 
@@ -65,8 +65,8 @@ If any input is missing, infer from upstream CRD docs and record inferences in t
 - **Do NOT use `consoleFetchJSON`** for operator/CRD detection; use `useK8sModel` only.
 - **Do NOT use VirtualizedTable** for the operator dashboard resource tables; use **ResourceTable** with `columns` and `rows`.
 - **Do NOT call `useDeleteModal` inside a `.map()` callback.** Use a per-row component (e.g. `ResourceTableRowActions`) that receives the resource and calls `useDeleteModal(resource)`.
-- **Do NOT use link-styled-only actions:** Inspect and Delete must be real **buttons** (Inspect = sky blue background, Delete = red). Style them with PatternFly CSS variables in the shared CSS (e.g. `--pf-v6-global--palette--blue-400`, `--pf-v6-global--palette--red-500`).
-- **Do NOT use hex colors** (e.g. `#1e1e1e`, `#374151`) in CSS or inline styles. Use **PatternFly CSS variables only** (e.g. `var(--pf-v6-global--BackgroundColor--200)`, `var(--pf-v6-global--BorderColor--100)`).
+- **Do NOT use link-styled-only actions:** Inspect and Delete must be real **buttons** (Inspect = sky blue background, Delete = red). Style them with PatternFly 6 button variants (`variant="primary"`, `variant="danger"`).
+- **Do NOT use hex colors** (e.g. `#1e1e1e`, `#374151`) in CSS or inline styles. Use **PatternFly 6 CSS variables only** — prefer semantic tokens (`var(--pf-t--global--background--color--primary--default)`, `var(--pf-t--global--border--color--default)`) over global palette tokens.
 - **Do NOT use `.pf-` or `.co-` prefixed class names** for your own structure (e.g. `co-m-loader`, `co-m-pane__body`). Use **`console-plugin-template__`** prefix for all custom classes.
 - **Do NOT use PatternFly 6 `EmptyStateHeader` or `EmptyStateIcon`**; they do not exist. Use props on `<EmptyState>`: `titleText`, `icon={SearchIcon}`, `headingLevel`.
 - **Do NOT use `Label`'s `variant` prop for status colors.** Use the **`status`** prop: `status="success"` (green), `status="danger"` (red), `status="warning"` (orange). (`variant` is for outline/filled/overflow/add.)
@@ -334,14 +334,14 @@ const rows = resources.map(obj => ({
 Add only missing classes. Use **PatternFly variables only** (no hex). Include:
 
 - `.console-plugin-template__resource-card` (margin or used in dashboard wrapper).
-- Dashboard cards wrapper: `.console-plugin-template__dashboard-cards` with `display: flex`, `flex-direction: column`, **`gap: var(--pf-v6-global--spacer--xl)`** so tables are not stuck together. Cards inside can have `margin-bottom: 0`.
+- Dashboard cards wrapper: `.console-plugin-template__dashboard-cards` with `display: flex`, `flex-direction: column`, **`gap: var(--pf-t--global--spacer--xl)`** so tables are not stuck together. Cards inside can have `margin-bottom: 0`.
 - Table styles for ResourceTable (header/data row background, borders, **text-align: left** for table data).
 - Loader (e.g. `.console-plugin-template__loader`, `.console-plugin-template__loader-dot`). **Keyframes** names must be **kebab-case** (e.g. `console-plugin-template-loader-bounce`).
-- Action buttons: `.console-plugin-template__action-inspect` (sky blue background/border), `.console-plugin-template__action-delete` (red), using `var(--pf-v6-global--palette--blue-400)`, `var(--pf-v6-global--palette--red-500)` (and hover variants).
+- Action buttons: use PatternFly `<Button variant="primary">` (blue) and `<Button variant="danger">` (red) — do NOT override button colors with custom CSS.
 - Expandable rows (if relationships defined):
   - `.console-plugin-template__expand-toggle`: button styling for expand/collapse chevron
   - `.console-plugin-template__expanded-row`: full-width cell containing child table
-  - `.console-plugin-template__expanded-content`: padding and background for nested table area (`padding-left: var(--pf-v6-global--spacer--xl)`, subtle background)
+  - `.console-plugin-template__expanded-content`: padding and background for nested table area (`padding-left: var(--pf-t--global--spacer--xl)`, subtle background)
   - `.console-plugin-template__child-table`: nested table styling (slightly smaller, indented)
   - `.console-plugin-template__no-children`: italic empty state text
 
@@ -351,33 +351,33 @@ Example CSS for expandable rows:
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: var(--pf-v6-global--spacer--xs);
-  color: var(--pf-v6-global--Color--100);
+  padding: var(--pf-t--global--spacer--xs);
+  color: var(--pf-t--global--text--color--regular);
 }
 
 .console-plugin-template__expand-toggle:hover {
-  color: var(--pf-v6-global--primary-color--100);
+  color: var(--pf-t--global--text--color--brand--default);
 }
 
 .console-plugin-template__expanded-row > td {
   padding: 0;
-  background-color: var(--pf-v6-global--BackgroundColor--200);
+  background-color: var(--pf-t--global--background--color--secondary--default);
 }
 
 .console-plugin-template__expanded-content {
-  padding: var(--pf-v6-global--spacer--md);
-  padding-left: var(--pf-v6-global--spacer--2xl);
-  border-left: 3px solid var(--pf-v6-global--primary-color--100);
+  padding: var(--pf-t--global--spacer--md);
+  padding-left: var(--pf-t--global--spacer--2xl);
+  border-left: 3px solid var(--pf-t--global--border--color--brand--default);
 }
 
 .console-plugin-template__child-table {
-  font-size: var(--pf-v6-global--FontSize--sm);
+  font-size: var(--pf-t--global--font--size--body--sm);
 }
 
 .console-plugin-template__no-children {
   font-style: italic;
-  color: var(--pf-v6-global--Color--200);
-  padding: var(--pf-v6-global--spacer--sm);
+  color: var(--pf-t--global--text--color--subtle);
+  padding: var(--pf-t--global--spacer--sm);
 }
 ```
 

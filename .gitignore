@@ -17,3 +17,6 @@ install-state.gz
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Project-specific
+demo-crds/
