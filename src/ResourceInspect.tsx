@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import Helmet from 'react-helmet';
 import {
   Title,
   Card,
@@ -162,7 +161,7 @@ export const ResourceInspect: React.FC = () => {
     resourceType === 'clusterpushsecrets';
 
   const [resource, loaded, loadError] = useK8sWatchResource<any>({
-    groupVersionKind: model,
+    groupVersionKind: model ?? undefined,
     name: name,
     namespace: isClusterScoped ? undefined : namespace || 'demo',
     isList: false,
@@ -364,7 +363,7 @@ export const ResourceInspect: React.FC = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {Object.entries(labels).map(([key, value]) => (
               <Label key={key} color="blue">
-                {key}: {value}
+                {key}: {String(value)}
               </Label>
             ))}
           </div>
@@ -412,7 +411,7 @@ export const ResourceInspect: React.FC = () => {
                   {key}
                 </DescriptionListTerm>
                 <DescriptionListDescription style={{ wordBreak: 'break-all', flex: 1 }}>
-                  {value}
+                  {String(value)}
                 </DescriptionListDescription>
               </DescriptionListGroup>
             ))}
@@ -583,7 +582,7 @@ export const ResourceInspect: React.FC = () => {
 
     // Filter pod statuses that reference this SecretProviderClass
     const relevantPodStatuses = (podStatuses || []).filter(
-      (podStatus) => podStatus.status.secretProviderClassName === resource.metadata.name,
+      (podStatus) => podStatus.status?.secretProviderClassName === resource.metadata.name,
     );
 
     if (relevantPodStatuses.length === 0) {
@@ -616,17 +615,17 @@ export const ResourceInspect: React.FC = () => {
               </thead>
               <tbody>
                 {relevantPodStatuses.map((podStatus) => (
-                  <tr key={podStatus.metadata.name}>
-                    <td>{podStatus.status.podName || podStatus.metadata.name}</td>
+                  <tr key={podStatus.metadata?.name}>
+                    <td>{podStatus.status?.podName || podStatus.metadata?.name}</td>
                     <td>
                       <Label
-                        color={podStatus.status.mounted ? 'green' : 'red'}
-                        icon={podStatus.status.mounted ? <CheckCircleIcon /> : <TimesCircleIcon />}
+                        color={podStatus.status?.mounted ? 'green' : 'red'}
+                        icon={podStatus.status?.mounted ? <CheckCircleIcon /> : <TimesCircleIcon />}
                       >
-                        {podStatus.status.mounted ? t('Yes') : t('No')}
+                        {podStatus.status?.mounted ? t('Yes') : t('No')}
                       </Label>
                     </td>
-                    <td>{formatTimestamp(podStatus.metadata.creationTimestamp)}</td>
+                    <td>{formatTimestamp(podStatus.metadata?.creationTimestamp || '')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -720,7 +719,8 @@ export const ResourceInspect: React.FC = () => {
                         {formatTimestamp(
                           evt.lastTimestamp ||
                             evt.firstTimestamp ||
-                            evt.metadata?.creationTimestamp,
+                            evt.metadata?.creationTimestamp ||
+                            '',
                         )}
                       </td>
                     </tr>
@@ -811,12 +811,13 @@ export const ResourceInspect: React.FC = () => {
     );
   }
 
+  const pageTitle = t('{resourceType} details', { resourceType: getResourceTypeDisplayName() });
+  React.useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
+
   return (
     <>
-      <Helmet>
-        <title>{t('{resourceType} details', { resourceType: getResourceTypeDisplayName() })}</title>
-      </Helmet>
-
       <div className="console-plugin-template__inspect-page">
         <div className="console-plugin-template__inspect-heading">
           <div className="console-plugin-template__resource-name">

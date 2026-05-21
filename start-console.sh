@@ -7,7 +7,7 @@ CONSOLE_PORT=${CONSOLE_PORT:=9000}
 CONSOLE_IMAGE_PLATFORM=${CONSOLE_IMAGE_PLATFORM:="linux/amd64"}
 
 # Plugin metadata is declared in package.json
-PLUGIN_NAME=${npm_package_consolePlugin_name}
+PLUGIN_NAME=$(node -p "require('./package.json').consolePlugin.name")
 
 echo "Starting local OpenShift console..."
 
