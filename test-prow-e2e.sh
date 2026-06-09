@@ -3,16 +3,16 @@
 set -exuo pipefail
 
 ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
-SCREENSHOTS_DIR=integration-tests/screenshots
+TEST_RESULTS_DIR=integration-tests/results
 INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR}/installer}
 
 function copyArtifacts {
-  if [ -d "$ARTIFACT_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
-    if [[ -z "$(ls -A -- "$SCREENSHOTS_DIR")" ]]; then
+  if [ -d "$ARTIFACT_DIR" ] && [ -d "$TEST_RESULTS_DIR" ]; then
+    if [[ -z "$(ls -A -- "$TEST_RESULTS_DIR")" ]]; then
       echo "No artifacts were copied."
     else
       echo "Copying artifacts from $(pwd)..."
-      cp -r "$SCREENSHOTS_DIR" "${ARTIFACT_DIR}/screenshots"
+      cp -r "$TEST_RESULTS_DIR" "${ARTIFACT_DIR}"
     fi
   fi
 }
@@ -33,5 +33,5 @@ if [ ! -d node_modules ]; then
   yarn install --immutable
 fi
 
-echo "Runs Cypress tests in headless mode"
-yarn test-cypress-headless
+echo "Runs Playwright tests in headless mode"
+yarn test-e2e-headless

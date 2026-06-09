@@ -2,9 +2,11 @@ import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin
 import { Trans, useTranslation } from 'react-i18next';
 import { Content, PageSection } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
+import type { FC } from 'react';
+
 import './example.css';
 
-export default function ExamplePage() {
+const ExamplePage: FC = () => {
   const { t } = useTranslation('plugin__console-plugin-template');
 
   return (
@@ -36,4 +38,6 @@ export default function ExamplePage() {
       </PageSection>
     </>
   );
-}
+};
+
+export default ExamplePage;
