@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-module.exports = {
+export default {
   isDirectory(filePath) {
     try {
       const stat = fs.lstatSync(filePath);

@@ -14,7 +14,7 @@ This is a **template repository** for creating OpenShift Console dynamic plugins
 **Key Technologies:**
 - TypeScript + React 18
 - PatternFly 6 (UI component library)
-- Webpack 5 with Module Federation
+- Rspack with Module Federation
 - react-i18next for internationalization
 - Playwright for e2e testing
 - Helm for deployment
@@ -25,11 +25,11 @@ This is a **template repository** for creating OpenShift Console dynamic plugins
 
 ### Dynamic Plugin System
 
-This plugin uses webpack module federation to load at runtime into the OpenShift Console. Key files:
+This plugin uses module federation to load at runtime into the OpenShift Console. Key files:
 
 - `console-extensions.json`: Declares what the plugin adds to console (routes, nav items, etc.)
 - `package.json` `consolePlugin` section: Plugin metadata and exposed modules mapping
-- `webpack.config.ts`: Configures module federation and build
+- `rspack.config.ts`: Configures module federation and build
 
 **Critical:** Any component referenced in `console-extensions.json` must have a corresponding entry in `package.json` under `consolePlugin.exposedModules`.
 
@@ -78,7 +78,7 @@ src/
 console-extensions.json # Plugin extension declarations
 package.json           # Plugin metadata in consolePlugin section
 tsconfig.json          # TypeScript config (strict: false currently)
-webpack.config.ts      # Module federation + build config
+rspack.config.ts      # Module federation + build config
 locales/               # i18n translation files
 charts/                # Helm chart for deployment
 integration-tests/     # Playwright e2e tests
@@ -88,7 +88,7 @@ integration-tests/     # Playwright e2e tests
 
 ### Local Development
 1. `yarn install` - install dependencies
-2. `yarn start` - starts webpack dev server on port 9001 with CORS
+2. `yarn start` - starts dev server on port 9001 with CORS
 3. `yarn start-console` - runs OpenShift console in container (requires cluster login)
 4. Navigate to http://localhost:9000/example
 
@@ -174,7 +174,7 @@ helm upgrade -i my-plugin charts/openshift-console-plugin \
 3. **CSS class prefixes prevent style conflicts** - always prefix with plugin name
 4. **Module federation requires exact module mapping** - `exposedModules` must match `$codeRef` values
 5. **PatternFly CSS variables only** - hex colors break dark mode
-6. **No webpack HMR for extensions** - changes to `console-extensions.json` require restart
+6. **No rspack HMR for extensions** - changes to `console-extensions.json` require restart
 7. **React 18** - matches console's React version
 
 ## Extension Points

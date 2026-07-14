@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
-const { CustomJSONLexer } = require('./i18n-scripts/lexers');
+import { CustomJSONLexer } from './i18n-scripts/lexers.js';
 
 // eslint-disable-next-line no-undef
-module.exports = {
+export default {
   sort: true,
   createOldCatalogs: false,
   keySeparator: false,
