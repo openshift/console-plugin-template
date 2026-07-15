@@ -1,18 +1,9 @@
-/* eslint-env node */
-
 import * as path from 'path';
-import { Configuration as WebpackConfiguration } from 'webpack';
-import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
+import { CopyRspackPlugin, Configuration } from '@rspack/core';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
-
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+import { TsCheckerRspackPlugin } from 'ts-checker-rspack-plugin';
 
 const isProd = process.env.NODE_ENV === 'production';
-
-interface Configuration extends WebpackConfiguration {
-  devServer?: WebpackDevServerConfiguration;
-}
 
 const config: Configuration = {
   mode: isProd ? 'production' : 'development',
@@ -32,11 +23,31 @@ const config: Configuration = {
       {
         test: /\.(jsx?|tsx?)$/,
         exclude: /\/node_modules\//,
-        use: ['swc-loader'],
+        use: {
+          loader: 'builtin:swc-loader',
+          options: {
+            detectSyntax: 'auto',
+            jsc: {
+              transform: {
+                react: {
+                  runtime: "automatic"
+                },
+                reactCompiler: {
+                  target: '18',
+                },
+              },
+              target: "es2021",
+            },
+            sourceMaps: true,
+            minify: true
+          },
+        },
+        type: 'javascript/auto',
       },
       {
         test: /\.(css)$/,
-        use: ['style-loader', 'css-loader'],
+        use: 'builtin:lightningcss-loader',
+        type: 'css',
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
@@ -69,12 +80,12 @@ const config: Configuration = {
   },
   plugins: [
     new ConsoleRemotePlugin(),
-    new ForkTsCheckerWebpackPlugin({
+    new TsCheckerRspackPlugin({
       typescript: {
         configFile: path.resolve(__dirname, 'tsconfig.json'),
       },
     }),
-    new CopyWebpackPlugin({
+    new CopyRspackPlugin({
       patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
     }),
   ],

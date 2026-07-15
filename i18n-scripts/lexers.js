@@ -1,10 +1,10 @@
-const EventEmitter = require('events');
-const jsonc = require('comment-json');
+import { EventEmitter } from 'events';
+import jsonc from 'comment-json';
 
 /**
  * Custom JSON parser for localizing keys matching format: /%.+%/
  */
-module.exports.CustomJSONLexer = class extends EventEmitter {
+export const CustomJSONLexer = class extends EventEmitter {
   extract(content, filename) {
     let keys = [];
     console.log(1)

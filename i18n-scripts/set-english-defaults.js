@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const pluralize = require('pluralize');
-const common = require('./common.js');
+import fs from 'fs';
+import path from 'path';
+import pluralize from 'pluralize';
+import common from './common.js';
 
-const publicDir = path.join(__dirname, './../locales/');
+const publicDir = path.join(import.meta.dirname, './../locales/');
 
 function determineRule(key) {
   if (key.includes('WithCount_plural')) {
@@ -19,7 +19,7 @@ function determineRule(key) {
 }
 
 function updateFile(fileName) {
-  const file = require(fileName);
+  const file = JSON.parse(fs.readFileSync(fileName, 'utf8'));
   const updatedFile = {};
 
   const keys = Object.keys(file);
