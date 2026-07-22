@@ -7,20 +7,19 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/openshift/console-plugin-template.git"
+    "url": "git+https://github.com/openshift/console-plugin-template.git"
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && NODE_ENV=production yarn rspack",
-    "build-dev": "yarn clean && yarn rspack",
-    "start": "yarn rspack serve",
+    "build": "yarn clean && NODE_ENV=production rspack",
+    "build-dev": "yarn clean && rspack",
+    "start": "rspack serve",
     "start-console": "./start-console.sh",
-    "i18n": "./i18n-scripts/build-i18n.sh && node ./i18n-scripts/set-english-defaults.js",
+    "i18n": "i18next-cli lint && i18next-cli extract",
     "test": "LANG=en_US.UTF-8 jest",
-    "lint": "yarn eslint src integration-tests --fix --max-warnings 0 && stylelint 'src/**/*.css' --allow-empty-input --fix",
+    "lint": "eslint src integration-tests --fix --max-warnings 0 && stylelint 'src/**/*.css' --allow-empty-input --fix",
     "test-e2e": "playwright test --headed",
-    "test-e2e-headless": "playwright test",
-    "rspack": "node -r ts-node/register ./node_modules/.bin/rspack"
+    "test-e2e-headless": "playwright test"
   },
   "devDependencies": {
     "@openshift-console/dynamic-plugin-sdk": "4.23-latest",
@@ -28,26 +27,25 @@
     "@patternfly/react-core": "^6.6.0",
     "@patternfly/react-icons": "^6.6.0",
     "@patternfly/react-table": "^6.6.0",
-    "@playwright/browser-chromium": "^1.60.1",
-    "@playwright/test": "^1.60.1",
-    "@rspack/cli": "^2.1.4",
-    "@rspack/core": "^2.1.4",
+    "@playwright/browser-chromium": "^1.61.1",
+    "@playwright/test": "^1.61.1",
+    "@rspack/cli": "^2.1.5",
+    "@rspack/core": "^2.1.5",
     "@rspack/dev-server": "^2.1.0",
-    "@rstest/core": "^0.11.1",
-    "@swc/core": "^1.15.40",
+    "@swc/core": "^1.15.46",
     "@swc/jest": "^0.2.39",
     "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.28",
-    "eslint": "^9.7.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jest": "^29.15.4",
+    "eslint-plugin-jest": "^29.15.5",
     "eslint-plugin-playwright": "^2.10.5",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
@@ -55,24 +53,23 @@
     "eslint-plugin-testing-library": "^7.16.2",
     "globals": "^17.7.0",
     "i18next": "^25.8.18",
-    "i18next-parser": "^9.4.0",
+    "i18next-cli": "1.50.3",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-junit": "^17.0.0",
-    "pluralize": "^8.0.0",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "prettier-stylelint": "^0.4.2",
     "react": "^18.3.1",
     "react-compiler-runtime": "^1.0.0",
     "react-dom": "^18.3.1",
     "react-i18next": "~16.5.8",
     "react-router": "~7.13.1",
-    "stylelint": "^17.14.0",
+    "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "ts-checker-rspack-plugin": "^1.5.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.65.0"
   },
   "dependenciesMeta": {
     "@playwright/browser-chromium": {
@@ -88,8 +85,8 @@
       "ExamplePage": "./components/ExamplePage"
     },
     "dependencies": {
-      "@console/pluginAPI": ">=4.22.0-0"
+      "@console/pluginAPI": ">=5.0.0-0 || >=4.23.0-0"
     }
   },
-  "packageManager": "yarn@4.14.1"
+  "packageManager": "yarn@4.17.1"
 }
