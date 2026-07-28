@@ -61,7 +61,7 @@ export default tseslint.config(
       ...jest.configs['flat/recommended'].languageOptions,
       ...jest.configs['flat/style'].languageOptions,
       globals: {
-        ...jest.configs['flat/recommended'].languageOptions?.globals,
+        ...globals.jest,
         ...globals.node,
       },
     },

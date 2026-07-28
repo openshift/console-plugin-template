@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 
 declare global {
   interface Window {
@@ -37,7 +37,7 @@ export class LoginPage {
     password: string = process.env.BRIDGE_KUBEADMIN_PASSWORD ?? '',
   ) {
     await this.page.context().clearCookies();
-    await this.page.goto('/');
+    await this.page.goto('/', { timeout: 90_000, waitUntil: 'domcontentloaded' });
 
     if (await this.isAuthDisabled()) {
       return;
