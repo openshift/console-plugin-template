@@ -39,7 +39,6 @@ const config: Configuration = {
               target: "es2021",
             },
             sourceMaps: true,
-            minify: true
           },
         },
         type: 'javascript/auto',
