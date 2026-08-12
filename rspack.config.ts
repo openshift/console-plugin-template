@@ -1,11 +1,12 @@
 import * as path from 'path';
-import { CopyRspackPlugin, Configuration } from '@rspack/core';
+import { CopyRspackPlugin } from '@rspack/core';
+import { defineConfig } from '@rspack/cli';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 import { TsCheckerRspackPlugin } from 'ts-checker-rspack-plugin';
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const config: Configuration = {
+export default defineConfig({
   mode: isProd ? 'production' : 'development',
   // No regular entry points needed. All plugin related scripts are generated via ConsoleRemotePlugin.
   entry: {},
@@ -30,7 +31,7 @@ const config: Configuration = {
             jsc: {
               transform: {
                 react: {
-                  runtime: "automatic"
+                  runtime: 'automatic'
                 },
                 reactCompiler: {
                   target: '18',
@@ -38,7 +39,6 @@ const config: Configuration = {
               },
               target: "es2021",
             },
-            sourceMaps: true,
           },
         },
         type: 'javascript/auto',
@@ -89,10 +89,4 @@ const config: Configuration = {
     }),
   ],
   devtool: isProd ? false : 'source-map',
-  optimization: {
-    chunkIds: isProd ? 'deterministic' : 'named',
-    minimize: isProd,
-  },
-};
-
-export default config;
+});

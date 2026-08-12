@@ -33,5 +33,10 @@ if [ ! -d node_modules ]; then
   yarn install --immutable
 fi
 
+export PLAYWRIGHT_BROWSERS_PATH="/tmp/playwright"
+
+echo "Install Chromium for Playwright"
+yarn playwright install chromium
+
 echo "Runs Playwright tests in headless mode"
 yarn test-e2e-headless
