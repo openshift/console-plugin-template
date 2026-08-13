@@ -37,7 +37,7 @@ export default defineConfig({
                   target: '18',
                 },
               },
-              target: "es2021",
+              target: 'es2021',
             },
           },
         },
