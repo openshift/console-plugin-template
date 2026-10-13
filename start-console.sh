@@ -23,6 +23,10 @@ BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get co
 set -e
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
+# Use BRIDGE_CSP_MODE=enforce to test enforcement with a console image that supports --csp-mode.
+BRIDGE_CSP_MODE="${BRIDGE_CSP_MODE:-report-only}"
+# Allow local plugin dev server reload connections when testing enforcement.
+BRIDGE_CONTENT_SECURITY_POLICY="${BRIDGE_CONTENT_SECURITY_POLICY:-connect-src=ws://localhost:9001}"
 BRIDGE_I18N_NAMESPACES="plugin__${PLUGIN_NAME}"
 
 # Don't fail if the cluster doesn't have gitops.
@@ -37,6 +41,7 @@ echo "API Server: $BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT"
 echo "Console Image: $CONSOLE_IMAGE"
 echo "Console URL: http://localhost:${CONSOLE_PORT}"
 echo "Console Platform: $CONSOLE_IMAGE_PLATFORM"
+echo "CSP Mode: $BRIDGE_CSP_MODE"
 
 # Prefer podman if installed. Otherwise, fall back to docker.
 if [ -x "$(command -v podman)" ]; then
