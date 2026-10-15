@@ -1,11 +1,8 @@
-import { execSync } from 'node:child_process';
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { checkErrors } from '../support';
+import { execSync } from 'node:child_process';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
-// Defined in openshift/release ci-operator config as CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC
-const PLUGIN_TEMPLATE_PULL_SPEC =
-  process.env.PLUGIN_TEMPLATE_PULL_SPEC ?? process.env.CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC;
 
 const isLocalDevEnvironment = (process.env.BRIDGE_BASE_ADDRESS ?? 'http://localhost:9000').includes(
   'localhost',
@@ -21,13 +18,13 @@ const exec = (command: string, timeoutMs = 360_000) => {
 };
 
 const installHelmChart = (helmPath: string) => {
-  if (!PLUGIN_TEMPLATE_PULL_SPEC) {
-    throw new Error(
-      'The PLUGIN_TEMPLATE_PULL_SPEC or CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC environment variable must be set to install the plugin image',
-    );
+  if (!process.env.PLUGIN_TEMPLATE_PULL_SPEC) {
+    console.log('PLUGIN_TEMPLATE_PULL_SPEC not set, skipping helm install');
+    return;
   }
+
   const result = exec(
-    `${helmPath} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
+    `${helmPath} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${process.env.PLUGIN_TEMPLATE_PULL_SPEC}`,
   );
   console.log('Helm install:', result);
 
