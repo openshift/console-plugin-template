@@ -201,8 +201,18 @@ plugin template when adding or changing messages.
 
 ## Linting
 
-This project adds prettier, eslint, and stylelint. Linting can be run with
+This project adds oxfmt, oxlint, and stylelint. Linting can be run with
 `yarn run lint`.
+
+Linting uses [oxlint](https://oxc.rs/docs/guide/usage/linter.html) (configured
+in `.oxlintrc.json`) with type-aware rules enabled via
+[tsgolint](https://github.com/oxc-project/tsgolint), and formatting uses
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) (configured in
+`.oxfmtrc.json`). The `eslint-plugin-playwright` and
+`eslint-plugin-testing-library` packages are still installed because oxlint
+loads them as JS plugins for their e2e and unit test rules; the `eslint`
+package itself remains installed only as their peer dependency — ESLint is
+not invoked and has no configuration.
 
 The stylelint config disallows defining colors since these cause problems with dark
 mode. Use [PatternFly semantic tokens](https://www.patternfly.org/tokens/all-patternfly-tokens)

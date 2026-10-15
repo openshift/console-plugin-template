@@ -43,7 +43,7 @@ export class LoginPage {
       return;
     }
 
-    await this.page.locator('[data-test-id="login"]').waitFor({ state: 'visible' });
+    await this.page.getByTestId('login').waitFor({ state: 'visible' });
     await this.page.locator('#inputUsername').fill(username);
     await this.fillSensitive(this.page.locator('#inputPassword'), password);
     await this.page.locator('button[type=submit]').click();
@@ -56,7 +56,7 @@ export class LoginPage {
     }
     await this.page.getByTestId('username').click();
     await this.page.getByTestId('log-out').waitFor({ state: 'visible' });
-    // eslint-disable-next-line playwright/no-force-option -- dropdown may be covered by overlay
+    // oxlint-disable-next-line playwright/no-force-option -- dropdown may be covered by overlay
     await this.page.getByTestId('log-out').click({ force: true });
   }
 }

@@ -47,7 +47,7 @@ This plugin uses module federation to load at runtime into the OpenShift Console
 - **NO hex colors** - use PatternFly CSS variables (e.g., `var(--pf-v6-global-palette--blue-500)`)
 - **NO naked element selectors** (like `table`, `div`) - prevents overwriting console styles
 - **NO `.pf-` or `.co-` prefixed classes** - these are reserved for PatternFly and console
-- **Prefix all custom classes** with plugin name (e.g., `console-plugin-template__nice`)
+- **Use CSS Modules** (`*.module.css`) for custom styles - class names are scoped automatically
 
 Don't disable these rules without understanding they protect against layout breakage!
 
@@ -74,7 +74,7 @@ return <h1>{t('Hello, World!')}</h1>;
 src/
   components/          # React components
     ExamplePage.tsx   # Example page component
-    *.css            # Component styles (scoped with plugin prefix)
+    *.module.css     # Component styles (CSS Modules, scoped automatically)
 console-extensions.json # Plugin extension declarations
 package.json           # Plugin metadata in consolePlugin section
 tsconfig.json          # TypeScript config (strict: false currently)
@@ -93,7 +93,7 @@ integration-tests/     # Playwright e2e tests
 4. Navigate to http://localhost:9000/example
 
 ### Code Quality
-- `yarn lint` - runs eslint, prettier, and stylelint (with --fix)
+- `yarn lint` - runs oxlint (with --fix, including type-aware rules via tsgolint), oxfmt, and stylelint (with --fix)
 - Linting is mandatory before commits
 - Follow existing code patterns in the repo
 
@@ -146,8 +146,7 @@ When instantiating from template, update:
 1. `package.json` - `name` and `consolePlugin.name`
 2. `package.json` - `consolePlugin.displayName` and `description`
 3. All i18n namespace references (`plugin__<name>`)
-4. CSS class prefixes
-5. Helm chart values
+4. Helm chart values
 
 ## Build & Deployment
 
@@ -171,7 +170,7 @@ helm upgrade -i my-plugin charts/openshift-console-plugin \
 
 1. **Template, not fork:** Users should use "Use this template", not fork
 2. **i18n namespace must match ConsolePlugin resource name** with `plugin__` prefix
-3. **CSS class prefixes prevent style conflicts** - always prefix with plugin name
+3. **CSS Modules scope class names automatically** - use `*.module.css`
 4. **Module federation requires exact module mapping** - `exposedModules` must match `$codeRef` values
 5. **PatternFly CSS variables only** - hex colors break dark mode
 6. **No rspack HMR for extensions** - changes to `console-extensions.json` require restart
@@ -218,7 +217,7 @@ See [Console Plugin SDK README](https://github.com/openshift/console/tree/master
 
 - **Use this template?** When creating a NEW OpenShift Console plugin from scratch
 - **Add a page?** Update console-extensions.json + exposedModules + create component
-- **Style something?** Use PatternFly components and CSS variables, prefix custom classes
+- **Style something?** Use PatternFly components and CSS variables with CSS Modules
 - **Add translations?** Use `t()` function, run `yarn i18n` after
 - **Test changes?** Run locally with `yarn start` + `yarn start-console`, add Playwright tests
 - **Deploy?** Build image, push to registry, install via Helm chart
