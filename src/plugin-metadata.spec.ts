@@ -1,19 +1,17 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import type { ConsolePluginBuildMetadata } from '@openshift-console/dynamic-plugin-sdk-webpack';
+import * as fs from 'node:fs';
+// oxlint-disable-next-line unicorn/import-style -- Jest transforms specs to CJS, where a default import of node:path requires esModuleInterop
+import * as path from 'node:path';
+import { name as packageName, consolePlugin as consolePluginMetadata } from '../package.json';
 
+// oxlint-disable-next-line unicorn/prefer-module -- Jest runs this spec as CJS, where import.meta is not available
 const ROOT = path.resolve(__dirname, '..');
-const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8')) as {
-  name: string;
-  consolePlugin: ConsolePluginBuildMetadata;
-};
-const localeFile = path.join(ROOT, `locales/en/plugin__${packageJson.consolePlugin.name}.json`);
+const localeFile = path.join(ROOT, `locales/en/plugin__${consolePluginMetadata.name}.json`);
 
 describe('plugin metadata', () => {
   it('has a matching i18n locale file, package name, and consolePlugin name', () => {
     if (!fs.existsSync(localeFile)) {
       return;
     }
-    expect(packageJson.name).toBe(packageJson.consolePlugin.name);
+    expect(packageName).toBe(consolePluginMetadata.name);
   });
 });

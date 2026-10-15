@@ -1,13 +1,35 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Native plugins whose rules are enabled below. The `jest` plugin is enabled
+  // only for unit test files via an override; `playwright` and
+  // `testing-library` rules come from JS plugins in the overrides.
   "plugins": [
     "typescript",
     "react",
+    "react-perf",
+    "jsx-a11y",
+    "unicorn",
     "import"
   ],
+  // Instead of listing every rule individually, enable all stable oxlint
+  // rule categories for the plugins above. Individual exceptions are declared
+  // in `rules`. Note: categories also apply to plugins enabled per override
+  // (e.g. the jest plugin for unit test files). Core rules that duplicate
+  // TypeScript compiler errors (e.g. no-dupe-keys) stay enabled deliberately:
+  // integration-tests has no compile check, so there they are a safety net.
   "categories": {
-    "correctness": "off"
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error"
   },
+  // `typeAware` runs type-aware `typescript/*` rules via tsgolint. Unit test
+  // files are typed by tsconfig.json, e2e files by
+  // integration-tests/tsconfig.json (tsgolint requires TypeScript 7
+  // compatible tsconfigs, hence "bundler" module resolution). `maxWarnings`
+  // mirrors the previous `eslint --max-warnings 0`.
   "options": {
     "typeAware": true,
     "maxWarnings": 0
@@ -17,158 +39,21 @@
     "node_modules/"
   ],
   "rules": {
-    "constructor-super": "error",
-    "for-direction": "error",
-    "getter-return": "error",
-    "no-async-promise-executor": "error",
-    "no-case-declarations": "error",
-    "no-class-assign": "error",
-    "no-compare-neg-zero": "error",
-    "no-cond-assign": "error",
-    "no-const-assign": "error",
-    "no-constant-binary-expression": "error",
-    "no-constant-condition": "error",
-    "no-control-regex": "error",
-    "no-debugger": "error",
-    "no-delete-var": "error",
-    "no-dupe-class-members": "error",
-    "no-dupe-else-if": "error",
-    "no-dupe-keys": "error",
-    "no-duplicate-case": "error",
-    "no-empty": "error",
-    "no-empty-character-class": "error",
-    "no-empty-pattern": "error",
-    "no-empty-static-block": "error",
-    "no-ex-assign": "error",
-    "no-extra-boolean-cast": "error",
-    "no-fallthrough": "error",
-    "no-func-assign": "error",
-    "no-global-assign": "error",
-    "no-import-assign": "error",
-    "no-invalid-regexp": "error",
-    "no-irregular-whitespace": "error",
-    "no-loss-of-precision": "error",
-    "no-misleading-character-class": "error",
-    "no-new-native-nonconstructor": "error",
-    "no-nonoctal-decimal-escape": "error",
-    "no-obj-calls": "error",
-    "no-prototype-builtins": "error",
-    "no-redeclare": "error",
-    "no-regex-spaces": "error",
-    "no-self-assign": "error",
-    "no-setter-return": "error",
-    "no-shadow-restricted-names": "error",
-    "no-sparse-arrays": "error",
-    "no-this-before-super": "error",
-    "no-unreachable": "error",
-    "no-unsafe-finally": "error",
-    "no-unsafe-negation": "error",
-    "no-unsafe-optional-chaining": "error",
-    "no-unused-labels": "error",
-    "no-unused-private-class-members": "error",
-    "no-unused-vars": "error",
-    "no-useless-backreference": "error",
-    "no-useless-catch": "error",
-    "no-useless-escape": "error",
-    "no-with": "error",
-    "require-yield": "error",
-    "use-isnan": "error",
-    "valid-typeof": "error",
-    "no-array-constructor": "error",
-    "no-unused-expressions": "error",
-    "no-useless-constructor": "error",
-    "no-empty-function": "error",
-    "import/namespace": "error",
-    "import/default": "error",
-    "import/no-named-as-default": "warn",
-    "import/no-named-as-default-member": "warn",
-    "import/no-duplicates": "warn",
-    // The following two import rules are marked "nursery" (under development) in oxlint,
-    // but are part of the previous import-x recommended config.
+    // Nursery/beta rules (not covered by categories) that were part of the previous
+    // typescript-eslint strictTypeChecked / import-x recommended configs:
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/prefer-optional-chain": "error",
     "import/named": "error",
     "import/export": "error",
-    "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "warn",
-    "react/static-components": "error",
-    "react/use-memo": "error",
-    "react/void-use-memo": "error",
-    "react/preserve-manual-memoization": "error",
-    "react/incompatible-library": "warn",
-    "react/immutability": "error",
-    "react/globals": "error",
-    "react/refs": "error",
-    "react/set-state-in-effect": "error",
-    "react/error-boundaries": "error",
-    "react/purity": "error",
-    "react/set-state-in-render": "error",
-    "react/unsupported-syntax": "warn",
-    "typescript/await-thenable": "error",
+    "react/require-render-return": "error",
+    // strictTypeChecked rule options (categories enable the rules, but not
+    // these stricter options from the previous typescript-eslint config):
     "typescript/ban-ts-comment": [
       "error",
       {
         "minimumDescriptionLength": 10
       }
     ],
-    "typescript/no-array-delete": "error",
-    "typescript/no-base-to-string": "error",
-    "typescript/no-confusing-void-expression": "error",
-    "typescript/no-deprecated": "error",
-    "typescript/no-duplicate-enum-values": "error",
-    "typescript/no-duplicate-type-constituents": "error",
-    "typescript/no-dynamic-delete": "error",
-    "typescript/no-empty-object-type": "error",
-    "typescript/no-explicit-any": "error",
-    "typescript/no-extra-non-null-assertion": "error",
-    "typescript/no-extraneous-class": "error",
-    "typescript/no-floating-promises": "error",
-    "typescript/no-for-in-array": "error",
-    "typescript/no-generated-empty-object-type": "error",
-    "typescript/no-implied-eval": "error",
-    "typescript/no-invalid-void-type": "error",
-    "typescript/no-meaningless-void-operator": "error",
-    "typescript/no-misused-new": "error",
-    "typescript/no-misused-promises": "error",
-    "typescript/no-misused-spread": "error",
-    "typescript/no-mixed-enums": "error",
-    "typescript/no-namespace": "error",
-    "typescript/no-non-null-asserted-nullish-coalescing": "error",
-    "typescript/no-non-null-asserted-optional-chain": "error",
-    "typescript/no-non-null-assertion": "error",
-    "typescript/no-redundant-type-constituents": "error",
-    "typescript/no-require-imports": "error",
-    "typescript/no-this-alias": "error",
-    "typescript/no-unnecessary-boolean-literal-compare": "error",
-    // The following two rules are marked "nursery" (under development) in oxlint,
-    // but are part of the previous typescript-eslint strictTypeChecked config.
-    // They are type-aware and run via tsgolint.
-    "typescript/no-unnecessary-condition": "error",
-    "typescript/prefer-optional-chain": "error",
-    "typescript/no-unnecessary-template-expression": "error",
-    "typescript/no-unnecessary-type-arguments": "error",
-    "typescript/no-unnecessary-type-assertion": "error",
-    "typescript/no-unnecessary-type-constraint": "error",
-    "typescript/no-unnecessary-type-conversion": "error",
-    "typescript/no-unnecessary-type-parameters": "error",
-    "typescript/no-unsafe-argument": "error",
-    "typescript/no-unsafe-assignment": "error",
-    "typescript/no-unsafe-call": "error",
-    "typescript/no-unsafe-declaration-merging": "error",
-    "typescript/no-unsafe-enum-comparison": "error",
-    "typescript/no-unsafe-function-type": "error",
-    "typescript/no-unsafe-member-access": "error",
-    "typescript/no-unsafe-return": "error",
-    "typescript/no-unsafe-unary-minus": "error",
-    "typescript/no-useless-default-assignment": "error",
-    "typescript/no-wrapper-object-types": "error",
-    "typescript/only-throw-error": "error",
-    "typescript/prefer-as-const": "error",
-    "typescript/prefer-literal-enum-member": "error",
-    "typescript/prefer-namespace-keyword": "error",
-    "typescript/prefer-promise-reject-errors": "error",
-    "typescript/prefer-reduce-type-parameter": "error",
-    "typescript/prefer-return-this-type": "error",
-    "typescript/related-getter-setter-pairs": "error",
-    "typescript/require-await": "error",
     "typescript/restrict-plus-operands": [
       "error",
       {
@@ -194,119 +79,79 @@
       "error",
       "error-handling-correctness-only"
     ],
-    "typescript/triple-slash-reference": "error",
-    "typescript/unbound-method": "error",
-    "typescript/unified-signatures": "error",
-    "typescript/use-unknown-in-catch-callback-variable": "error",
-    "typescript/adjacent-overload-signatures": "error",
-    "typescript/array-type": "error",
-    "typescript/ban-tslint-comment": "error",
-    "typescript/class-literal-property-style": "error",
-    "typescript/consistent-generic-constructors": "error",
-    "typescript/consistent-indexed-object-style": "error",
-    "typescript/consistent-type-assertions": "error",
-    "typescript/consistent-type-definitions": "error",
-    "typescript/dot-notation": "error",
-    "typescript/no-confusing-non-null-assertion": "error",
-    "typescript/no-inferrable-types": "error",
-    "typescript/non-nullable-type-assertion-style": "error",
-    "typescript/prefer-find": "error",
-    "typescript/prefer-for-of": "error",
-    "typescript/prefer-function-type": "error",
-    "typescript/prefer-includes": "error",
-    "typescript/prefer-nullish-coalescing": "error",
-    "typescript/prefer-regexp-exec": "error",
-    "typescript/prefer-string-starts-ends-with": "error"
+    // Project style conventions:
+    "import/no-default-export": "error",
+    "eslint/func-style": [
+      "error",
+      "expression"
+    ],
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": "arrow-function",
+        "unnamedComponents": "arrow-function"
+      }
+    ],
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [
+          ".tsx",
+          ".jsx"
+        ],
+        "allow": "as-needed"
+      }
+    ],
+    // Previously disabled in the ESLint config:
+    "react/react-in-jsx-scope": "off", // Unnecessary with the automatic JSX runtime
+    // Rules enabled by the categories above that are disabled because they
+    // contradict each other or don't fit this project:
+    "import/prefer-default-export": "off", // Contradicts the named-exports convention
+    "import/no-named-export": "off", // Contradicts the named-exports convention
+    "import/group-exports": "off", // Not this project's export style
+    "import/no-namespace": "off", // Tests legitimately use namespace imports
+    "import/no-unassigned-import": "off", // CSS imports are intentionally side-effect only
+    "import/no-relative-parent-imports": "off", // e2e helpers import via parent paths
+    "import/consistent-type-specifier-style": "off", // Would churn the existing import style
+    "import/unambiguous": "off", // False-positives on declaration files like css.d.ts
+    "typescript/explicit-function-return-type": "off", // Too strict; requires return types everywhere
+    "typescript/explicit-module-boundary-types": "off", // Too strict; requires annotating exported functions
+    "typescript/explicit-member-accessibility": "off", // Too strict; requires access modifiers everywhere
+    "typescript/parameter-properties": "off", // Constructor parameter properties are used deliberately
+    "typescript/prefer-readonly-parameter-types": "off", // Ill-suited for mutable Playwright page objects
+    "typescript/strict-boolean-expressions": "off", // Too pedantic for idiomatic truthiness checks
+    "typescript/no-import-type-side-effects": "off", // Would churn imports; not previously enforced
+    "typescript/no-unsafe-type-assertion": "off", // Fires on the metadata spec's existing assertions
+    "eslint/require-await": "off", // Redundant; typescript/require-await covers this better
+    "eslint/sort-imports": "off", // Not this project's import ordering style
+    "unicorn/prefer-global-this": "off", // Browsers use `window`
+    "no-ternary": "off", // Ternaries are often the clearer form
+    "unicorn/filename-case": "off", // Not this project's filename style
+    "eslint/sort-keys": "off", // Not this project's key ordering style
+    "eslint/id-length": "off", // Short names like t are conventional
+    "one-var": "off", // Makes the code less readable
+    "eslint/no-negated-condition": "off", // Negation is often the clearer form
+    "eslint/no-magic-numbers": "off", // Timeouts and test values are self-explanatory
+    "eslint/no-duplicate-imports": "off", // Redundant with import/no-duplicates
+    "eslint/require-unicode-regexp": "off", // Existing regexes intentionally lack the u flag
+    "react/jsx-no-literals": "off", // Would require wrapping all literal JSX text
+    "react/jsx-max-depth": "off" // Default nesting limit of two is too shallow
   },
   "overrides": [
-    {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
-      "rules": {
-        "constructor-super": "off",
-        "getter-return": "off",
-        "no-class-assign": "off",
-        "no-const-assign": "off",
-        "no-dupe-class-members": "off",
-        "no-dupe-keys": "off",
-        "no-func-assign": "off",
-        "no-import-assign": "off",
-        "no-new-native-nonconstructor": "off",
-        "no-obj-calls": "off",
-        "no-redeclare": "off",
-        "no-setter-return": "off",
-        "no-this-before-super": "off",
-        "no-unreachable": "off",
-        "no-unsafe-negation": "off",
-        "no-var": "error",
-        "no-with": "off",
-        "prefer-const": "error",
-        "prefer-rest-params": "error",
-        "prefer-spread": "error"
-      }
-    },
-    {
-      "files": [
-        "src/**/*.{ts,tsx}"
-      ],
-      "rules": {
-        "react/display-name": "error",
-        "react/jsx-key": "error",
-        "react/jsx-no-comment-textnodes": "error",
-        "react/jsx-no-duplicate-props": "error",
-        "react/jsx-no-target-blank": "error",
-        "react/jsx-no-undef": "error",
-        "react/no-children-prop": "error",
-        "react/no-danger-with-children": "error",
-        "react/no-direct-mutation-state": "error",
-        "react/no-find-dom-node": "error",
-        "react/no-is-mounted": "error",
-        "react/no-render-return-value": "error",
-        "react/no-string-refs": "error",
-        "react/no-unescaped-entities": "error",
-        "react/no-unknown-property": "error",
-        // Marked "nursery" (under development) in oxlint, but part of the previous
-        // eslint-plugin-react recommended config.
-        "react/require-render-return": "error",
-        "react/no-unsafe": "off",
-        "react/react-in-jsx-scope": "off",
-        "typescript/consistent-type-imports": "error"
-      },
-      "env": {
-        "browser": true
-      }
-    },
+    // Unit test files: jest rules come from the categories above; the
+    // testing-library rules are provided by its ESLint plugin via oxlint's
+    // JS plugin support.
     {
       "files": [
         "src/**/*.spec.{ts,tsx}"
       ],
+      "plugins": [
+        "jest"
+      ],
+      "jsPlugins": [
+        "eslint-plugin-testing-library"
+      ],
       "rules": {
-        "jest/expect-expect": "warn",
-        "jest/no-alias-methods": "error",
-        "jest/no-commented-out-tests": "warn",
-        "jest/no-conditional-expect": "error",
-        "jest/no-deprecated-functions": "error",
-        "jest/no-disabled-tests": "warn",
-        "jest/no-done-callback": "error",
-        "jest/no-export": "error",
-        "jest/no-focused-tests": "error",
-        "jest/no-identical-title": "error",
-        "jest/no-interpolation-in-snapshots": "error",
-        "jest/no-jasmine-globals": "error",
-        "jest/no-mocks-import": "error",
-        "jest/no-standalone-expect": "error",
-        "jest/no-test-prefixes": "error",
-        "jest/valid-describe-callback": "error",
-        "jest/valid-expect": "error",
-        "jest/valid-expect-in-promise": "error",
-        "jest/valid-title": "error",
-        "jest/prefer-to-be": "error",
-        "jest/prefer-to-contain": "error",
-        "jest/prefer-to-have-length": "error",
         "testing-library/await-async-events": [
           "error",
           {
@@ -325,7 +170,7 @@
         ],
         "testing-library/no-await-sync-queries": "error",
         "testing-library/no-container": "error",
-        "testing-library/no-debugging-utils": "warn",
+        "testing-library/no-debugging-utils": "error",
         "testing-library/no-dom-import": [
           "error",
           "react"
@@ -343,127 +188,129 @@
         "testing-library/prefer-presence-queries": "error",
         "testing-library/prefer-query-by-disappearance": "error",
         "testing-library/prefer-screen-queries": "error",
-        "testing-library/render-result-naming-convention": "error"
+        "testing-library/render-result-naming-convention": "error",
+        "jest/prefer-importing-jest-globals": "off", // Tests rely on injected jest globals
+        "jest/prefer-expect-assertions": "off", // Too strict for these tests
+        "jest/prefer-lowercase-title": "off", // Titles intentionally match component names
+        "jest/no-conditional-in-test": "off", // Metadata spec needs conditional logic
+        "import/no-nodejs-modules": "off" // Metadata spec reads files via Node builtins
       },
-      "jsPlugins": [
-        "eslint-plugin-testing-library"
-      ],
-      "plugins": [
-        "jest"
-      ],
       "env": {
         "jest": true,
         "node": true
       }
     },
+    // Playwright e2e tests: rules come from eslint-plugin-playwright via
+    // oxlint's JS plugin support. Type-aware rules run because these files
+    // are typed by integration-tests/tsconfig.json.
     {
       "files": [
         "integration-tests/**/*.ts"
       ],
+      "jsPlugins": [
+        "eslint-plugin-playwright"
+      ],
       "rules": {
-        "no-empty-pattern": "off",
-        "playwright/consistent-spacing-between-blocks": "warn",
-        "playwright/expect-expect": "warn",
-        "playwright/max-nested-describe": "warn",
+        "playwright/consistent-spacing-between-blocks": "error",
+        "playwright/expect-expect": "error",
+        "playwright/max-nested-describe": "error",
         "playwright/missing-playwright-await": "error",
-        "playwright/no-conditional-expect": "warn",
-        "playwright/no-conditional-in-test": "warn",
-        "playwright/no-duplicate-hooks": "warn",
-        "playwright/no-duplicate-slow": "warn",
-        "playwright/no-element-handle": "warn",
-        "playwright/no-eval": "warn",
+        "playwright/no-conditional-expect": "error",
+        "playwright/no-conditional-in-test": "error",
+        "playwright/no-duplicate-hooks": "error",
+        "playwright/no-duplicate-slow": "error",
+        "playwright/no-element-handle": "error",
+        "playwright/no-eval": "error",
         "playwright/no-focused-test": "error",
-        "playwright/no-force-option": "warn",
-        "playwright/no-identical-title": "warn",
-        "playwright/no-nested-step": "warn",
+        "playwright/no-force-option": "error",
+        "playwright/no-identical-title": "error",
+        "playwright/no-nested-step": "error",
         "playwright/no-networkidle": "error",
-        "playwright/no-page-pause": "warn",
-        "playwright/no-skipped-test": "warn",
+        "playwright/no-page-pause": "error",
+        "playwright/no-skipped-test": "error",
         "playwright/no-standalone-expect": "error",
         "playwright/no-unnecessary-assertions": "error",
         "playwright/no-unsafe-references": "error",
         "playwright/no-unused-locators": "error",
-        "playwright/no-useless-await": "warn",
-        "playwright/no-useless-not": "warn",
+        "playwright/no-useless-await": "error",
+        "playwright/no-useless-not": "error",
         "playwright/no-wait-for-navigation": "error",
-        "playwright/no-wait-for-selector": "warn",
-        "playwright/no-wait-for-timeout": "warn",
-        "playwright/prefer-hooks-in-order": "warn",
-        "playwright/prefer-hooks-on-top": "warn",
-        "playwright/prefer-locator": "warn",
-        "playwright/prefer-to-have-count": "warn",
-        "playwright/prefer-to-have-length": "warn",
+        "playwright/no-wait-for-selector": "error",
+        "playwright/no-wait-for-timeout": "error",
+        "playwright/prefer-hooks-in-order": "error",
+        "playwright/prefer-hooks-on-top": "error",
+        "playwright/prefer-locator": "error",
+        "playwright/prefer-to-have-count": "error",
+        "playwright/prefer-to-have-length": "error",
         "playwright/prefer-web-first-assertions": "error",
         "playwright/valid-describe-callback": "error",
         "playwright/valid-expect": "error",
         "playwright/valid-expect-in-promise": "error",
         "playwright/valid-test-tags": "error",
         "playwright/valid-title": "error",
-        "no-console": "off",
-        "typescript/await-thenable": "off",
-        "typescript/consistent-return": "off",
-        "typescript/consistent-type-exports": "off",
-        "typescript/dot-notation": "off",
-        "typescript/no-array-delete": "off",
-        "typescript/no-base-to-string": "off",
-        "typescript/no-confusing-void-expression": "off",
-        "typescript/no-deprecated": "off",
-        "typescript/no-duplicate-type-constituents": "off",
-        "typescript/no-floating-promises": "off",
-        "typescript/no-for-in-array": "off",
-        "typescript/no-generated-empty-object-type": "off",
-        "typescript/no-implied-eval": "off",
-        "typescript/no-meaningless-void-operator": "off",
-        "typescript/no-misused-promises": "off",
-        "typescript/no-misused-spread": "off",
-        "typescript/no-mixed-enums": "off",
-        "typescript/no-redundant-type-constituents": "off",
-        "typescript/no-unnecessary-boolean-literal-compare": "off",
-        "typescript/no-unnecessary-condition": "off",
-        "typescript/prefer-optional-chain": "off",
-        "typescript/no-unnecessary-qualifier": "off",
-        "typescript/no-unnecessary-template-expression": "off",
-        "typescript/no-unnecessary-type-arguments": "off",
-        "typescript/no-unnecessary-type-assertion": "off",
-        "typescript/no-unnecessary-type-conversion": "off",
-        "typescript/no-unnecessary-type-parameters": "off",
-        "typescript/no-unsafe-argument": "off",
-        "typescript/no-unsafe-assignment": "off",
-        "typescript/no-unsafe-call": "off",
-        "typescript/no-unsafe-enum-comparison": "off",
-        "typescript/no-unsafe-member-access": "off",
-        "typescript/no-unsafe-return": "off",
-        "typescript/no-unsafe-type-assertion": "off",
-        "typescript/no-unsafe-unary-minus": "off",
-        "typescript/no-useless-default-assignment": "off",
-        "typescript/non-nullable-type-assertion-style": "off",
-        "typescript/only-throw-error": "off",
-        "typescript/prefer-find": "off",
-        "typescript/prefer-includes": "off",
-        "typescript/prefer-nullish-coalescing": "off",
-        "typescript/prefer-promise-reject-errors": "off",
-        "typescript/prefer-readonly": "off",
-        "typescript/prefer-readonly-parameter-types": "off",
-        "typescript/prefer-reduce-type-parameter": "off",
-        "typescript/prefer-regexp-exec": "off",
-        "typescript/prefer-return-this-type": "off",
-        "typescript/prefer-string-starts-ends-with": "off",
-        "typescript/promise-function-async": "off",
-        "typescript/related-getter-setter-pairs": "off",
-        "typescript/require-array-sort-compare": "off",
-        "typescript/require-await": "off",
-        "typescript/restrict-plus-operands": "off",
-        "typescript/restrict-template-expressions": "off",
-        "typescript/return-await": "off",
-        "typescript/strict-boolean-expressions": "off",
-        "typescript/strict-void-return": "off",
-        "typescript/switch-exhaustiveness-check": "off",
-        "typescript/unbound-method": "off",
-        "typescript/use-unknown-in-catch-callback-variable": "off"
-      },
-      "jsPlugins": [
-        "eslint-plugin-playwright"
-      ]
+        "typescript/await-thenable": "off", // Superseded by the TypeScript compiler
+        "typescript/consistent-return": "off", // Superseded by the TypeScript compiler
+        "typescript/consistent-type-exports": "off", // Superseded by the TypeScript compiler
+        "typescript/dot-notation": "off", // Superseded by the TypeScript compiler
+        "typescript/no-array-delete": "off", // Superseded by the TypeScript compiler
+        "typescript/no-base-to-string": "off", // Superseded by the TypeScript compiler
+        "typescript/no-confusing-void-expression": "off", // Superseded by the TypeScript compiler
+        "typescript/no-deprecated": "off", // Superseded by the TypeScript compiler
+        "typescript/no-duplicate-type-constituents": "off", // Superseded by the TypeScript compiler
+        "typescript/no-floating-promises": "off", // Superseded by the TypeScript compiler
+        "typescript/no-for-in-array": "off", // Superseded by the TypeScript compiler
+        "typescript/no-generated-empty-object-type": "off", // Superseded by the TypeScript compiler
+        "typescript/no-implied-eval": "off", // Superseded by the TypeScript compiler
+        "typescript/no-meaningless-void-operator": "off", // Superseded by the TypeScript compiler
+        "typescript/no-misused-promises": "off", // Superseded by the TypeScript compiler
+        "typescript/no-misused-spread": "off", // Superseded by the TypeScript compiler
+        "typescript/no-mixed-enums": "off", // Superseded by the TypeScript compiler
+        "typescript/no-redundant-type-constituents": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-boolean-literal-compare": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-condition": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-optional-chain": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-qualifier": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-template-expression": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-type-arguments": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-type-assertion": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-type-conversion": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unnecessary-type-parameters": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-argument": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-assignment": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-call": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-enum-comparison": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-member-access": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-return": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-type-assertion": "off", // Superseded by the TypeScript compiler
+        "typescript/no-unsafe-unary-minus": "off", // Superseded by the TypeScript compiler
+        "typescript/no-useless-default-assignment": "off", // Superseded by the TypeScript compiler
+        "typescript/non-nullable-type-assertion-style": "off", // Superseded by the TypeScript compiler
+        "typescript/only-throw-error": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-find": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-includes": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-nullish-coalescing": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-promise-reject-errors": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-readonly": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-readonly-parameter-types": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-reduce-type-parameter": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-regexp-exec": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-return-this-type": "off", // Superseded by the TypeScript compiler
+        "typescript/prefer-string-starts-ends-with": "off", // Superseded by the TypeScript compiler
+        "typescript/promise-function-async": "off", // Superseded by the TypeScript compiler
+        "typescript/related-getter-setter-pairs": "off", // Superseded by the TypeScript compiler
+        "typescript/require-array-sort-compare": "off", // Superseded by the TypeScript compiler
+        "typescript/require-await": "off", // Superseded by the TypeScript compiler
+        "typescript/restrict-plus-operands": "off", // Superseded by the TypeScript compiler
+        "typescript/restrict-template-expressions": "off", // Superseded by the TypeScript compiler
+        "typescript/return-await": "off", // Superseded by the TypeScript compiler
+        "typescript/strict-boolean-expressions": "off", // Superseded by the TypeScript compiler
+        "typescript/strict-void-return": "off", // Superseded by the TypeScript compiler
+        "typescript/switch-exhaustiveness-check": "off", // Superseded by the TypeScript compiler
+        "typescript/unbound-method": "off", // Superseded by the TypeScript compiler
+        "typescript/use-unknown-in-catch-callback-variable": "off", // Superseded by the TypeScript compiler
+        "no-console": "off", // e2e tests log progress intentionally
+        "import/no-nodejs-modules": "off" // e2e tests legitimately use Node.js builtins
+      }
     }
   ]
 }

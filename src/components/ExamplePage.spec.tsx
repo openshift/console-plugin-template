@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import ExamplePage from './ExamplePage';
+import { ExamplePage } from './ExamplePage';
 
 describe('ExamplePage', () => {
   it('renders the page heading', () => {

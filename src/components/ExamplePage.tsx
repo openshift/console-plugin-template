@@ -6,7 +6,7 @@ import type { FC } from 'react';
 
 import './example.css';
 
-const ExamplePage: FC = () => {
+export const ExamplePage: FC = () => {
   const { t } = useTranslation('plugin__console-plugin-template');
 
   return (
@@ -39,5 +39,3 @@ const ExamplePage: FC = () => {
     </>
   );
 };
-
-export default ExamplePage;
