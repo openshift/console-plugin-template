@@ -9,6 +9,7 @@ export default defineConfig({
     viewport: { width: 1920, height: 1080 },
     screenshot: 'on',
     ignoreHTTPSErrors: true,
+    userAgent: 'ConsoleIntegrationTestEnvironment',
     video: 'retain-on-failure',
     trace: 'on',
     testIdAttribute: 'data-test',

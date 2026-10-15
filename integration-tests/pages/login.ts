@@ -14,7 +14,7 @@ export class LoginPage {
   constructor(private readonly page: Page) {}
 
   private async isAuthDisabled() {
-    return this.page.evaluate(() => window.SERVER_FLAGS?.authDisabled ?? false);
+    return this.page.evaluate(() => window.SERVER_FLAGS?.authDisabled ?? false).catch(() => false);
   }
 
   // Fill a field via CDP to avoid exposing the value in Playwright traces

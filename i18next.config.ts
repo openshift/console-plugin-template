@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import jsonc from 'comment-json';
-import { defineConfig, Plugin } from 'i18next-cli';
+import type { Plugin } from 'i18next-cli';
+import { defineConfig } from 'i18next-cli';
 import { consolePlugin as consolePluginMetadata } from './package.json';
 
 const EXPECTED_NAMESPACE = `plugin__${consolePluginMetadata.name}`;
@@ -20,7 +21,7 @@ const consoleExtensionsPlugin = (): Plugin => ({
         content,
         (_key, value) => {
           if (typeof value === 'string') {
-            const match = value.match(/^%(.+)%$/);
+            const match = /^%(.+)%$/.exec(value);
             if (match && match[1]) {
               extracted.push({ key: match[1] });
             }

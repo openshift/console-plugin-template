@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "preserve",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "allowJs": true,
@@ -15,7 +15,8 @@
     "files": true,
     "transpileOnly": true,
     "compilerOptions": {
-      "module": "commonjs"
+      "module": "commonjs",
+      "moduleResolution": "node",
     }
   }
 }
