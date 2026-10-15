@@ -21,6 +21,11 @@ const exec = (command: string, timeoutMs = 360_000) => {
 };
 
 const installHelmChart = (helmPath: string) => {
+  if (!PLUGIN_TEMPLATE_PULL_SPEC) {
+    throw new Error(
+      'The PLUGIN_TEMPLATE_PULL_SPEC or CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC environment variable must be set to install the plugin image',
+    );
+  }
   const result = exec(
     `${helmPath} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
   );

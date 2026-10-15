@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 // oxlint-disable-next-line unicorn/import-style -- Jest transforms specs to CJS, where a default import of node:path requires esModuleInterop
 import * as path from 'node:path';
-import { name as packageName, consolePlugin as consolePluginMetadata } from '../package.json';
+import { consolePlugin as consolePluginMetadata, name as packageName } from '../package.json';
 
 // oxlint-disable-next-line unicorn/prefer-module -- Jest runs this spec as CJS, where import.meta is not available
 const ROOT = path.resolve(__dirname, '..');

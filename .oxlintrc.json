@@ -248,66 +248,6 @@
         "playwright/valid-expect-in-promise": "error",
         "playwright/valid-test-tags": "error",
         "playwright/valid-title": "error",
-        "typescript/await-thenable": "off", // Superseded by the TypeScript compiler
-        "typescript/consistent-return": "off", // Superseded by the TypeScript compiler
-        "typescript/consistent-type-exports": "off", // Superseded by the TypeScript compiler
-        "typescript/dot-notation": "off", // Superseded by the TypeScript compiler
-        "typescript/no-array-delete": "off", // Superseded by the TypeScript compiler
-        "typescript/no-base-to-string": "off", // Superseded by the TypeScript compiler
-        "typescript/no-confusing-void-expression": "off", // Superseded by the TypeScript compiler
-        "typescript/no-deprecated": "off", // Superseded by the TypeScript compiler
-        "typescript/no-duplicate-type-constituents": "off", // Superseded by the TypeScript compiler
-        "typescript/no-floating-promises": "off", // Superseded by the TypeScript compiler
-        "typescript/no-for-in-array": "off", // Superseded by the TypeScript compiler
-        "typescript/no-generated-empty-object-type": "off", // Superseded by the TypeScript compiler
-        "typescript/no-implied-eval": "off", // Superseded by the TypeScript compiler
-        "typescript/no-meaningless-void-operator": "off", // Superseded by the TypeScript compiler
-        "typescript/no-misused-promises": "off", // Superseded by the TypeScript compiler
-        "typescript/no-misused-spread": "off", // Superseded by the TypeScript compiler
-        "typescript/no-mixed-enums": "off", // Superseded by the TypeScript compiler
-        "typescript/no-redundant-type-constituents": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-boolean-literal-compare": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-condition": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-optional-chain": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-qualifier": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-template-expression": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-type-arguments": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-type-assertion": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-type-conversion": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unnecessary-type-parameters": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-argument": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-assignment": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-call": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-enum-comparison": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-member-access": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-return": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-type-assertion": "off", // Superseded by the TypeScript compiler
-        "typescript/no-unsafe-unary-minus": "off", // Superseded by the TypeScript compiler
-        "typescript/no-useless-default-assignment": "off", // Superseded by the TypeScript compiler
-        "typescript/non-nullable-type-assertion-style": "off", // Superseded by the TypeScript compiler
-        "typescript/only-throw-error": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-find": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-includes": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-nullish-coalescing": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-promise-reject-errors": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-readonly": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-readonly-parameter-types": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-reduce-type-parameter": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-regexp-exec": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-return-this-type": "off", // Superseded by the TypeScript compiler
-        "typescript/prefer-string-starts-ends-with": "off", // Superseded by the TypeScript compiler
-        "typescript/promise-function-async": "off", // Superseded by the TypeScript compiler
-        "typescript/related-getter-setter-pairs": "off", // Superseded by the TypeScript compiler
-        "typescript/require-array-sort-compare": "off", // Superseded by the TypeScript compiler
-        "typescript/require-await": "off", // Superseded by the TypeScript compiler
-        "typescript/restrict-plus-operands": "off", // Superseded by the TypeScript compiler
-        "typescript/restrict-template-expressions": "off", // Superseded by the TypeScript compiler
-        "typescript/return-await": "off", // Superseded by the TypeScript compiler
-        "typescript/strict-boolean-expressions": "off", // Superseded by the TypeScript compiler
-        "typescript/strict-void-return": "off", // Superseded by the TypeScript compiler
-        "typescript/switch-exhaustiveness-check": "off", // Superseded by the TypeScript compiler
-        "typescript/unbound-method": "off", // Superseded by the TypeScript compiler
-        "typescript/use-unknown-in-catch-callback-variable": "off", // Superseded by the TypeScript compiler
         "no-console": "off", // e2e tests log progress intentionally
         "import/no-nodejs-modules": "off" // e2e tests legitimately use Node.js builtins
       }
