@@ -3,6 +3,7 @@ import { CopyRspackPlugin } from '@rspack/core';
 import { defineConfig } from '@rspack/cli';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 import { TsCheckerRspackPlugin } from 'ts-checker-rspack-plugin';
+import { consolePlugin as consolePluginMetadata } from './package.json';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -24,6 +25,13 @@ export default defineConfig({
     parser: {
       'css/auto': {
         namedExports: false,
+      },
+    },
+    // Prefix CSS Module class names with the plugin name so they are
+    // identifiable in the console DOM.
+    generator: {
+      'css/auto': {
+        localIdentName: `${consolePluginMetadata.name}__[local]--[hash:base64:6]`,
       },
     },
     rules: [
