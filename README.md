@@ -220,10 +220,12 @@ for colors instead.
 
 The stylelint config also disallows naked element selectors like `table` and
 `.pf-` or `.co-` prefixed classes. This prevents plugins from accidentally
-overwriting default console styles, breaking the layout of existing pages. The
-best practice is to prefix your CSS class names with your plugin name to avoid
-conflicts. Please don't disable these rules without understanding how they can
-break console styles!
+overwriting default console styles, breaking the layout of existing pages.
+Note that CSS Modules only scope class names, not element selectors, so these
+rules stay necessary even in `*.module.css` files. Use CSS Modules
+(`*.module.css`) for custom styles; class names are scoped automatically and
+linted for kebab-case. Please don't disable these rules without understanding
+how they can break console styles!
 
 ## References
 

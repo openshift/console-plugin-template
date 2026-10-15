@@ -20,6 +20,12 @@ export default defineConfig({
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
   },
   module: {
+    // Allow default imports of CSS Modules (import styles from './x.module.css')
+    parser: {
+      'css/auto': {
+        namedExports: false,
+      },
+    },
     rules: [
       {
         test: /\.(jsx?|tsx?)$/,
@@ -46,7 +52,8 @@ export default defineConfig({
       {
         test: /\.(css)$/,
         use: 'builtin:lightningcss-loader',
-        type: 'css',
+        // css/auto treats *.module.css files as CSS Modules, plain .css as global CSS
+        type: 'css/auto',
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,

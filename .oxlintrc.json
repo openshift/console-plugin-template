@@ -110,7 +110,6 @@
     "import/no-named-export": "off", // Contradicts the named-exports convention
     "import/group-exports": "off", // Not this project's export style
     "import/no-namespace": "off", // Tests legitimately use namespace imports
-    "import/no-unassigned-import": "off", // CSS imports are intentionally side-effect only
     "import/no-relative-parent-imports": "off", // e2e helpers import via parent paths
     "import/consistent-type-specifier-style": "off", // Would churn the existing import style
     "import/unambiguous": "off", // False-positives on declaration files like css.d.ts

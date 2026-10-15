@@ -1,10 +1,10 @@
+import { Content, PageSection } from '@patternfly/react-core';
 import { DocumentTitle, ListPageHeader } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans, useTranslation } from 'react-i18next';
-import { Content, PageSection } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
 import type { FC } from 'react';
 
-import './example.css';
+import styles from './ExamplePage.module.css';
 
 export const ExamplePage: FC = () => {
   const { t } = useTranslation('plugin__console-plugin-template');
@@ -15,7 +15,7 @@ export const ExamplePage: FC = () => {
       <ListPageHeader title={t('Hello, plugin!')} />
       <PageSection>
         <Content component="p">
-          <span className="console-plugin-template__nice">
+          <span className={styles.nice}>
             <CheckCircleIcon /> {t('Success!')}
           </span>{' '}
           {t('Your plugin is working.')}
