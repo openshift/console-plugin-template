@@ -28,6 +28,10 @@ set -x
 BRIDGE_BASE_ADDRESS="$(oc get consoles.config.openshift.io cluster -o jsonpath='{.status.consoleURL}')"
 export BRIDGE_BASE_ADDRESS
 
+echo "Disable guided tour"
+oc patch console.operator.openshift.io cluster --type=merge -p '{"spec":{"customization":{"capabilities":[{"name":"GuidedTour","visibility":{"state":"Disabled"}}]}}}'
+oc rollout status -w deploy/console -n openshift-console --timeout=300s
+
 echo "Install dependencies"
 if [ ! -d node_modules ]; then
   yarn install --immutable
