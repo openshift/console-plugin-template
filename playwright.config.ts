@@ -1,8 +1,12 @@
 import { defineConfig } from '@playwright/test';
+import { join } from 'node:path';
+
+const artifactDir: string = process.env.ARTIFACT_DIR ?? 'integration-tests/results';
 
 export default defineConfig({
   testDir: './integration-tests/tests',
-  timeout: 30000,
+  outputDir: join(artifactDir, 'test-results'),
+  timeout: 30_000,
   retries: 1,
   use: {
     baseURL: process.env.BRIDGE_BASE_ADDRESS ?? 'http://localhost:9000',
@@ -26,7 +30,7 @@ export default defineConfig({
   ],
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'integration-tests/results/html', open: 'never' }],
-    ['junit', { outputFile: 'integration-tests/results/junit-results.xml' }],
+    ['html', { outputFolder: join(artifactDir, 'html'), open: 'never' }],
+    ['junit', { outputFile: join(artifactDir, 'junit-results.xml') }],
   ],
 });

@@ -1,0 +1,255 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Native plugins whose rules are enabled below. The `jest` plugin is enabled
+  // only for unit test files via an override; `playwright` and
+  // `testing-library` rules come from JS plugins in the overrides.
+  "plugins": [
+    "typescript",
+    "react",
+    "react-perf",
+    "jsx-a11y",
+    "unicorn",
+    "import"
+  ],
+  // Instead of listing every rule individually, enable all stable oxlint
+  // rule categories for the plugins above. Individual exceptions are declared
+  // in `rules`. Note: categories also apply to plugins enabled per override
+  // (e.g. the jest plugin for unit test files). Core rules that duplicate
+  // TypeScript compiler errors (e.g. no-dupe-keys) stay enabled deliberately:
+  // integration-tests has no compile check, so there they are a safety net.
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error"
+  },
+  // `typeAware` runs type-aware `typescript/*` rules via tsgolint. Unit test
+  // files are typed by tsconfig.json, e2e files by
+  // integration-tests/tsconfig.json (tsgolint requires TypeScript 7
+  // compatible tsconfigs, hence "bundler" module resolution). `maxWarnings`
+  // mirrors the previous `eslint --max-warnings 0`.
+  "options": {
+    "typeAware": true,
+    "maxWarnings": 0
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/"
+  ],
+  "rules": {
+    // Nursery/beta rules (not covered by categories) that were part of the previous
+    // typescript-eslint strictTypeChecked / import-x recommended configs:
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/prefer-optional-chain": "error",
+    "import/named": "error",
+    "import/export": "error",
+    "react/require-render-return": "error",
+    // strictTypeChecked rule options (categories enable the rules, but not
+    // these stricter options from the previous typescript-eslint config):
+    "typescript/ban-ts-comment": [
+      "error",
+      {
+        "minimumDescriptionLength": 10
+      }
+    ],
+    "typescript/restrict-plus-operands": [
+      "error",
+      {
+        "allowAny": false,
+        "allowBoolean": false,
+        "allowNullish": false,
+        "allowNumberAndString": false,
+        "allowRegExp": false
+      }
+    ],
+    "typescript/restrict-template-expressions": [
+      "error",
+      {
+        "allowAny": false,
+        "allowBoolean": false,
+        "allowNever": false,
+        "allowNullish": false,
+        "allowNumber": false,
+        "allowRegExp": false
+      }
+    ],
+    "typescript/return-await": [
+      "error",
+      "error-handling-correctness-only"
+    ],
+    // Project style conventions:
+    "import/no-default-export": "error",
+    "eslint/func-style": [
+      "error",
+      "expression"
+    ],
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": "arrow-function",
+        "unnamedComponents": "arrow-function"
+      }
+    ],
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [
+          ".tsx",
+          ".jsx"
+        ],
+        "allow": "as-needed"
+      }
+    ],
+    // Previously disabled in the ESLint config:
+    "react/react-in-jsx-scope": "off", // Unnecessary with the automatic JSX runtime
+    // Rules enabled by the categories above that are disabled because they
+    // contradict each other or don't fit this project:
+    "import/prefer-default-export": "off", // Contradicts the named-exports convention
+    "import/no-named-export": "off", // Contradicts the named-exports convention
+    "import/group-exports": "off", // Not this project's export style
+    "import/no-namespace": "off", // Tests legitimately use namespace imports
+    "import/no-relative-parent-imports": "off", // e2e helpers import via parent paths
+    "import/consistent-type-specifier-style": "off", // Would churn the existing import style
+    "import/unambiguous": "off", // False-positives on declaration files like css.d.ts
+    "typescript/explicit-function-return-type": "off", // Too strict; requires return types everywhere
+    "typescript/explicit-module-boundary-types": "off", // Too strict; requires annotating exported functions
+    "typescript/explicit-member-accessibility": "off", // Too strict; requires access modifiers everywhere
+    "typescript/parameter-properties": "off", // Constructor parameter properties are used deliberately
+    "typescript/prefer-readonly-parameter-types": "off", // Ill-suited for mutable Playwright page objects
+    "typescript/strict-boolean-expressions": "off", // Too pedantic for idiomatic truthiness checks
+    "typescript/no-import-type-side-effects": "off", // Would churn imports; not previously enforced
+    "typescript/no-unsafe-type-assertion": "off", // Fires on the metadata spec's existing assertions
+    "eslint/require-await": "off", // Redundant; typescript/require-await covers this better
+    "eslint/sort-imports": "off", // Not this project's import ordering style
+    "unicorn/prefer-global-this": "off", // Browsers use `window`
+    "no-ternary": "off", // Ternaries are often the clearer form
+    "unicorn/filename-case": "off", // Not this project's filename style
+    "eslint/sort-keys": "off", // Not this project's key ordering style
+    "eslint/id-length": "off", // Short names like t are conventional
+    "one-var": "off", // Makes the code less readable
+    "eslint/no-negated-condition": "off", // Negation is often the clearer form
+    "eslint/no-magic-numbers": "off", // Timeouts and test values are self-explanatory
+    "eslint/no-duplicate-imports": "off", // Redundant with import/no-duplicates
+    "eslint/require-unicode-regexp": "off", // Existing regexes intentionally lack the u flag
+    "react/jsx-no-literals": "off", // Would require wrapping all literal JSX text
+    "react/jsx-max-depth": "off" // Default nesting limit of two is too shallow
+  },
+  "overrides": [
+    // Unit test files: jest rules come from the categories above; the
+    // testing-library rules are provided by its ESLint plugin via oxlint's
+    // JS plugin support.
+    {
+      "files": [
+        "src/**/*.spec.{ts,tsx}"
+      ],
+      "plugins": [
+        "jest"
+      ],
+      "jsPlugins": [
+        "eslint-plugin-testing-library"
+      ],
+      "rules": {
+        "testing-library/await-async-events": [
+          "error",
+          {
+            "eventModule": "userEvent"
+          }
+        ],
+        "testing-library/await-async-queries": "error",
+        "testing-library/await-async-utils": "error",
+        "testing-library/no-await-sync-events": [
+          "error",
+          {
+            "eventModules": [
+              "fire-event"
+            ]
+          }
+        ],
+        "testing-library/no-await-sync-queries": "error",
+        "testing-library/no-container": "error",
+        "testing-library/no-debugging-utils": "error",
+        "testing-library/no-dom-import": [
+          "error",
+          "react"
+        ],
+        "testing-library/no-global-regexp-flag-in-query": "error",
+        "testing-library/no-manual-cleanup": "error",
+        "testing-library/no-node-access": "error",
+        "testing-library/no-promise-in-fire-event": "error",
+        "testing-library/no-render-in-lifecycle": "error",
+        "testing-library/no-unnecessary-act": "error",
+        "testing-library/no-wait-for-multiple-assertions": "error",
+        "testing-library/no-wait-for-side-effects": "error",
+        "testing-library/no-wait-for-snapshot": "error",
+        "testing-library/prefer-find-by": "error",
+        "testing-library/prefer-presence-queries": "error",
+        "testing-library/prefer-query-by-disappearance": "error",
+        "testing-library/prefer-screen-queries": "error",
+        "testing-library/render-result-naming-convention": "error",
+        "jest/prefer-importing-jest-globals": "off", // Tests rely on injected jest globals
+        "jest/prefer-expect-assertions": "off", // Too strict for these tests
+        "jest/prefer-lowercase-title": "off", // Titles intentionally match component names
+        "jest/no-conditional-in-test": "off", // Metadata spec needs conditional logic
+        "import/no-nodejs-modules": "off" // Metadata spec reads files via Node builtins
+      },
+      "env": {
+        "jest": true,
+        "node": true
+      }
+    },
+    // Playwright e2e tests: rules come from eslint-plugin-playwright via
+    // oxlint's JS plugin support. Type-aware rules run because these files
+    // are typed by integration-tests/tsconfig.json.
+    {
+      "files": [
+        "integration-tests/**/*.ts"
+      ],
+      "jsPlugins": [
+        "eslint-plugin-playwright"
+      ],
+      "rules": {
+        "playwright/consistent-spacing-between-blocks": "error",
+        "playwright/expect-expect": "error",
+        "playwright/max-nested-describe": "error",
+        "playwright/missing-playwright-await": "error",
+        "playwright/no-conditional-expect": "error",
+        "playwright/no-conditional-in-test": "error",
+        "playwright/no-duplicate-hooks": "error",
+        "playwright/no-duplicate-slow": "error",
+        "playwright/no-element-handle": "error",
+        "playwright/no-eval": "error",
+        "playwright/no-focused-test": "error",
+        "playwright/no-force-option": "error",
+        "playwright/no-identical-title": "error",
+        "playwright/no-nested-step": "error",
+        "playwright/no-networkidle": "error",
+        "playwright/no-page-pause": "error",
+        "playwright/no-skipped-test": "error",
+        "playwright/no-standalone-expect": "error",
+        "playwright/no-unnecessary-assertions": "error",
+        "playwright/no-unsafe-references": "error",
+        "playwright/no-unused-locators": "error",
+        "playwright/no-useless-await": "error",
+        "playwright/no-useless-not": "error",
+        "playwright/no-wait-for-navigation": "error",
+        "playwright/no-wait-for-selector": "error",
+        "playwright/no-wait-for-timeout": "error",
+        "playwright/prefer-hooks-in-order": "error",
+        "playwright/prefer-hooks-on-top": "error",
+        "playwright/prefer-locator": "error",
+        "playwright/prefer-to-have-count": "error",
+        "playwright/prefer-to-have-length": "error",
+        "playwright/prefer-web-first-assertions": "error",
+        "playwright/valid-describe-callback": "error",
+        "playwright/valid-expect": "error",
+        "playwright/valid-expect-in-promise": "error",
+        "playwright/valid-test-tags": "error",
+        "playwright/valid-title": "error",
+        "no-console": "off", // e2e tests log progress intentionally
+        "import/no-nodejs-modules": "off" // e2e tests legitimately use Node.js builtins
+      }
+    }
+  ]
+}

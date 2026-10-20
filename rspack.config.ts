@@ -1,8 +1,9 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import { CopyRspackPlugin } from '@rspack/core';
 import { defineConfig } from '@rspack/cli';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 import { TsCheckerRspackPlugin } from 'ts-checker-rspack-plugin';
+import { consolePlugin as consolePluginMetadata } from './package.json';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -10,19 +11,29 @@ export default defineConfig({
   mode: isProd ? 'production' : 'development',
   // No regular entry points needed. All plugin related scripts are generated via ConsoleRemotePlugin.
   entry: {},
-  context: path.resolve(__dirname, 'src'),
+  context: path.resolve(import.meta.dirname, 'src'),
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(import.meta.dirname, 'dist'),
     filename: isProd ? '[name]-bundle-[hash].min.js' : '[name]-bundle.js',
     chunkFilename: isProd ? '[name]-chunk-[chunkhash].min.js' : '[name]-chunk.js',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['.ts', '.tsx', '.js'],
   },
   module: {
+    parser: {
+      'css/auto': {
+        namedExports: false,
+      },
+    },
+    generator: {
+      'css/auto': {
+        localIdentName: `${consolePluginMetadata.name}__[local]--[hash:base64:6]`,
+      },
+    },
     rules: [
       {
-        test: /\.(jsx?|tsx?)$/,
+        test: /\.(js|tsx?)$/,
         exclude: /\/node_modules\//,
         use: {
           loader: 'builtin:swc-loader',
@@ -44,21 +55,15 @@ export default defineConfig({
         type: 'javascript/auto',
       },
       {
-        test: /\.(css)$/,
+        test: /\.css$/,
         use: 'builtin:lightningcss-loader',
-        type: 'css',
+        type: 'css/auto',
       },
       {
-        test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
+        test: /\.(png|jpg|jpeg|gif|svg)(\?.*$|$)/,
         type: 'asset/resource',
         generator: {
           filename: isProd ? 'assets/[contenthash][ext]' : 'assets/[name][ext]',
-        },
-      },
-      {
-        test: /\.(m?js)$/,
-        resolve: {
-          fullySpecified: false,
         },
       },
     ],
@@ -81,11 +86,11 @@ export default defineConfig({
     new ConsoleRemotePlugin(),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: path.resolve(__dirname, 'tsconfig.json'),
+        configFile: path.resolve(import.meta.dirname, 'tsconfig.json'),
       },
     }),
     new CopyRspackPlugin({
-      patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+      patterns: [{ from: path.resolve(import.meta.dirname, 'locales'), to: 'locales' }],
     }),
   ],
   devtool: isProd ? false : 'source-map',

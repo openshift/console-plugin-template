@@ -1,6 +1,5 @@
-/* Prefixing your CSS classes with your plugin name is a best practice to avoid
- * collisions with other plugin styles. */
-.console-plugin-template__nice {
+/* CSS Modules scope class names automatically, so simple local names are fine. */
+.nice {
   /* Use PatternFly semantic tokens for colors to support theming.
    * https://www.patternfly.org/tokens/all-patternfly-tokens */
   color: var(--pf-t--global--color--brand--default);

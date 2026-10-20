@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "allowJs": true,
+    "resolveJsonModule": true,
     "strict": true,
     "noUnusedLocals": true,
     "types": ["jest", "@testing-library/jest-dom", "node"]
@@ -14,7 +15,8 @@
     "files": true,
     "transpileOnly": true,
     "compilerOptions": {
-      "module": "commonjs"
+      "module": "commonjs",
+      "moduleResolution": "node",
     }
   }
 }
