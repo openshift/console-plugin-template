@@ -18,15 +18,24 @@ rules:
     - lch
   # PatternFly CSS vars don't conform to stylelint's regex. Disable this rule.
   custom-property-pattern: null
-  # Disable the standard rule to allow BEM-style class names with underscores.
-  selector-class-pattern: null
+  # :global() and :local() are CSS Modules pseudo-classes, not unknown ones.
+  selector-pseudo-class-no-unknown:
+    - true
+    - ignorePseudoClasses: [global, local]
+  # CSS Modules scope class names, so local classes don't need a plugin-name
+  # prefix. Require kebab-case for them.
+  selector-class-pattern:
+    - '^([a-z][a-z0-9]*)(-[a-z0-9]+)*$'
+    - message: 'Expected class name to be kebab-case'
   # Disallow CSS class names prefixed with .pf- or .co- as these prefixes are
-  # reserved by PatternFly and OpenShift console.
+  # reserved by PatternFly and OpenShift console. Note that CSS Modules hash
+  # local class names, so this mainly guards :global() escape hatches.
   selector-disallowed-list:
-    - "*"
+    - '*'
     - /\.(pf|co)-/
   # Plugins should avoid naked element selectors like `table` and `li` since
-  # this can impact layout of existing pages in console.
+  # this can impact layout of existing pages in console. Note that CSS Modules
+  # do NOT scope element selectors - they remain global.
   selector-max-type:
     - 0
     - ignore:

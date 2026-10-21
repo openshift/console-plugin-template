@@ -4,6 +4,7 @@
 .devcontainer/dev.env
 integration-tests/.auth
 integration-tests/results
+test-results/
 
 # Jest
 coverage/

@@ -1,28 +1,30 @@
-import { execSync } from 'child_process';
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { checkErrors } from '../support';
+import { execSync } from 'node:child_process';
 
 const PLUGIN_TEMPLATE_NAME = 'console-plugin-template';
-// Defined in openshift/release ci-operator config as CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC
-const PLUGIN_TEMPLATE_PULL_SPEC =
-  process.env.PLUGIN_TEMPLATE_PULL_SPEC ?? process.env.CYPRESS_PLUGIN_TEMPLATE_PULL_SPEC;
 
 const isLocalDevEnvironment = (process.env.BRIDGE_BASE_ADDRESS ?? 'http://localhost:9000').includes(
   'localhost',
 );
 
-function exec(command: string, timeoutMs = 360000) {
+const exec = (command: string, timeoutMs = 360_000) => {
   try {
-    return execSync(command, { timeout: timeoutMs, encoding: 'utf-8' });
-  } catch (e) {
-    console.error('Command failed:', command, e);
+    return execSync(command, { timeout: timeoutMs, encoding: 'utf8' });
+  } catch (error) {
+    console.error('Command failed:', command, error);
     return '';
   }
-}
+};
 
-function installHelmChart(helmPath: string) {
+const installHelmChart = (helmPath: string) => {
+  if (!process.env.PLUGIN_TEMPLATE_PULL_SPEC) {
+    console.log('PLUGIN_TEMPLATE_PULL_SPEC not set, skipping helm install');
+    return;
+  }
+
   const result = exec(
-    `${helmPath} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${PLUGIN_TEMPLATE_PULL_SPEC}`,
+    `${helmPath} upgrade -i ${PLUGIN_TEMPLATE_NAME} charts/openshift-console-plugin -n ${PLUGIN_TEMPLATE_NAME} --create-namespace --set plugin.image=${process.env.PLUGIN_TEMPLATE_PULL_SPEC}`,
   );
   console.log('Helm install:', result);
 
@@ -30,24 +32,24 @@ function installHelmChart(helmPath: string) {
     `oc rollout status -n ${PLUGIN_TEMPLATE_NAME} deploy/${PLUGIN_TEMPLATE_NAME} -w --timeout=300s`,
   );
   exec('oc rollout status -w deploy/console -n openshift-console --timeout=300s');
-}
+};
 
-function deleteHelmChart(helmPath: string) {
+const deleteHelmChart = (helmPath: string) => {
   const result = exec(
     `${helmPath} uninstall ${PLUGIN_TEMPLATE_NAME} -n ${PLUGIN_TEMPLATE_NAME} && oc delete namespaces ${PLUGIN_TEMPLATE_NAME}`,
   );
   console.log('Helm uninstall:', result);
-}
+};
 
 test.describe('Console plugin template test', () => {
   test.beforeAll(() => {
-    if (!isLocalDevEnvironment) {
+    if (isLocalDevEnvironment) {
+      console.log('this is a local env, not installing helm');
+      installHelmChart('helm');
+    } else {
       console.log('this is not a local env, installing helm');
       exec('./install_helm.sh');
       installHelmChart('/tmp/helm');
-    } else {
-      console.log('this is a local env, not installing helm');
-      installHelmChart('helm');
     }
   });
 
@@ -56,10 +58,10 @@ test.describe('Console plugin template test', () => {
   });
 
   test.afterAll(() => {
-    if (!isLocalDevEnvironment) {
-      deleteHelmChart('/tmp/helm');
-    } else {
+    if (isLocalDevEnvironment) {
       deleteHelmChart('helm');
+    } else {
+      deleteHelmChart('/tmp/helm');
     }
   });
 

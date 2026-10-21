@@ -2,23 +2,7 @@
 
 set -exuo pipefail
 
-ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
-TEST_RESULTS_DIR=integration-tests/results
-INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR}/installer}
-
-function copyArtifacts {
-  if [ -d "$ARTIFACT_DIR" ] && [ -d "$TEST_RESULTS_DIR" ]; then
-    if [[ -z "$(ls -A -- "$TEST_RESULTS_DIR")" ]]; then
-      echo "No artifacts were copied."
-    else
-      echo "Copying artifacts from $(pwd)..."
-      cp -r "$TEST_RESULTS_DIR" "${ARTIFACT_DIR}"
-    fi
-  fi
-}
-
-trap copyArtifacts EXIT
-
+INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR:-/tmp/artifacts}/installer}
 
 # don't log kubeadmin-password
 set +x
@@ -27,6 +11,10 @@ export BRIDGE_KUBEADMIN_PASSWORD
 set -x
 BRIDGE_BASE_ADDRESS="$(oc get consoles.config.openshift.io cluster -o jsonpath='{.status.consoleURL}')"
 export BRIDGE_BASE_ADDRESS
+
+echo "Disable guided tour"
+oc patch console.operator.openshift.io cluster --type=merge -p '{"spec":{"customization":{"capabilities":[{"name":"GuidedTour","visibility":{"state":"Disabled"}}]}}}'
+oc rollout status -w deploy/console -n openshift-console --timeout=300s
 
 echo "Install dependencies"
 if [ ! -d node_modules ]; then

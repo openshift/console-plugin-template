@@ -1,21 +1,10 @@
-import { type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
-declare global {
-  interface Window {
-    SERVER_FLAGS?: {
-      authDisabled?: boolean;
-    };
-  }
-}
-
+const AUTH_DISABLED_USERNAME = 'Auth disabled';
 export const KUBEADMIN_USERNAME = 'kubeadmin';
 
 export class LoginPage {
   constructor(private readonly page: Page) {}
-
-  private async isAuthDisabled() {
-    return this.page.evaluate(() => window.SERVER_FLAGS?.authDisabled);
-  }
 
   // Fill a field via CDP to avoid exposing the value in Playwright traces
   // https://github.com/microsoft/playwright/issues/19992#issuecomment-4078945450
@@ -39,11 +28,17 @@ export class LoginPage {
     await this.page.context().clearCookies();
     await this.page.goto('/', { timeout: 90_000, waitUntil: 'domcontentloaded' });
 
-    if (await this.isAuthDisabled()) {
+    // Wait for either the login form or a console with auth disabled / an existing session.
+    await this.page
+      .getByTestId('login')
+      .or(this.page.getByTestId('username'))
+      .first()
+      .waitFor({ state: 'visible' });
+
+    if (await this.page.getByTestId('username').isVisible()) {
       return;
     }
 
-    await this.page.locator('[data-test-id="login"]').waitFor({ state: 'visible' });
     await this.page.locator('#inputUsername').fill(username);
     await this.fillSensitive(this.page.locator('#inputPassword'), password);
     await this.page.locator('button[type=submit]').click();
@@ -51,12 +46,17 @@ export class LoginPage {
   }
 
   async logout() {
-    if (await this.isAuthDisabled()) {
+    // Auth-disabled consoles have no user menu to log out from.
+    const username = this.page.getByTestId('username');
+    const usernameText = await username.textContent();
+
+    if (usernameText === AUTH_DISABLED_USERNAME) {
       return;
     }
-    await this.page.getByTestId('username').click();
+
+    await username.click();
     await this.page.getByTestId('log-out').waitFor({ state: 'visible' });
-    // eslint-disable-next-line playwright/no-force-option -- dropdown may be covered by overlay
+    // oxlint-disable-next-line playwright/no-force-option -- dropdown may be covered by overlay
     await this.page.getByTestId('log-out').click({ force: true });
   }
 }

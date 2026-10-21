@@ -201,8 +201,18 @@ plugin template when adding or changing messages.
 
 ## Linting
 
-This project adds prettier, eslint, and stylelint. Linting can be run with
+This project adds oxfmt, oxlint, and stylelint. Linting can be run with
 `yarn run lint`.
+
+Linting uses [oxlint](https://oxc.rs/docs/guide/usage/linter.html) (configured
+in `.oxlintrc.json`) with type-aware rules enabled via
+[tsgolint](https://github.com/oxc-project/tsgolint), and formatting uses
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) (configured in
+`.oxfmtrc.json`). The `eslint-plugin-playwright` and
+`eslint-plugin-testing-library` packages are still installed because oxlint
+loads them as JS plugins for their e2e and unit test rules; the `eslint`
+package itself remains installed only as their peer dependency — ESLint is
+not invoked and has no configuration.
 
 The stylelint config disallows defining colors since these cause problems with dark
 mode. Use [PatternFly semantic tokens](https://www.patternfly.org/tokens/all-patternfly-tokens)
@@ -210,10 +220,12 @@ for colors instead.
 
 The stylelint config also disallows naked element selectors like `table` and
 `.pf-` or `.co-` prefixed classes. This prevents plugins from accidentally
-overwriting default console styles, breaking the layout of existing pages. The
-best practice is to prefix your CSS class names with your plugin name to avoid
-conflicts. Please don't disable these rules without understanding how they can
-break console styles!
+overwriting default console styles, breaking the layout of existing pages.
+Note that CSS Modules only scope class names, not element selectors, so these
+rules stay necessary even in `*.module.css` files. Use CSS Modules
+(`*.module.css`) for custom styles; class names are scoped automatically and
+linted for kebab-case. Please don't disable these rules without understanding
+how they can break console styles!
 
 ## References
 
