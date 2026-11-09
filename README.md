@@ -165,6 +165,149 @@ NOTE: When deploying on OpenShift 4.10, it is recommended to add the parameter `
 
 NOTE: When defining i18n namespace, adhere `plugin__<name-of-the-plugin>` format. The name of the plugin should be extracted from the `consolePlugin` declaration within the [package.json](package.json) file.
 
+### Serving certificate rotation
+
+The chart mounts the serving certificate secret at `/var/cert` and the nginx
+configuration ConfigMap at `/etc/nginx/plugin`, and passes
+`-c /etc/nginx/plugin/nginx.conf` as container arguments, which the container
+engine appends to the image entrypoint `nginx -g "daemon off;"`. The arguments
+assume that the image's entrypoint is nginx, as in the [Dockerfile](Dockerfile).
+With `-c`, nginx resolves relative `include` paths against `/etc/nginx/plugin`,
+so a customized configuration has to use absolute paths such as
+`/etc/nginx/mime.types`. Neither volume uses a `subPath` mount, because
+Kubernetes never updates files mounted with `subPath`.
+
+nginx serves a rotated certificate without a reload or restart. The
+`ssl_certificate` and `ssl_certificate_key` paths in the nginx configuration
+contain the variable `$plugin_certificate_dir`, so nginx reads the certificate
+and key from the mounted secret on every full TLS handshake instead of once at
+startup. When the kubelet updates the secret volume, for example after the
+service CA operator rotates the serving certificate, new connections get the
+new certificate. Connections that are already open keep the certificate they
+started with, and a client that resumes an earlier TLS session does not
+receive a certificate. The kubelet can take a minute or more to deliver an
+updated secret to a running pod.
+
+`$plugin_certificate_dir` comes from a `map` with a constant source and only a
+default value, so it is always `/var/cert`. Nothing the client sends, such as
+the TLS server name, is used in the path: clients that send no server name, an
+unexpected name, or a name that looks like a path all get the certificate from
+`/var/cert`.
+
+Loading the certificate on every handshake has a cost:
+
+- nginx reads and parses both files for every full TLS handshake. The
+  [nginx documentation](https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate)
+  notes that this may have a negative impact on performance. nginx 1.27.4 added
+  `ssl_certificate_cache` to cache such certificates, but the nginx 1.20 in the
+  `ubi9/nginx-120` image does not support it, so the configuration does not use
+  it.
+- nginx does not check the certificate at startup, and `nginx -t` does not
+  either. If the files are missing or malformed, or the key does not match the
+  certificate, nginx keeps running but fails every full handshake with a TLS
+  `internal_error` alert and logs an error such as
+  `cannot load certificate "/var/cert/tls.crt"` or `key values mismatch` for
+  each one. nginx keeps no copy of a previous certificate to fall back to, so
+  an invalid secret affects the running pods at once, and all replicas fail
+  together because they mount the same secret. The chart defines no readiness
+  probe, so the pods stay ready while this happens. As soon as the secret
+  contains a valid certificate and key again, the next handshake uses them,
+  without a restart.
+- The certificate and the key are separate files that nginx reads one after
+  the other, so a handshake that coincides with a secret update can read them
+  from different versions. nginx rejects such a pair with a
+  `key values mismatch` error, fails that handshake and keeps running; the
+  client's next connection gets the new pair.
+
+nginx reads its configuration only at startup, so changes to the nginx
+configuration, including the TLS settings below, take effect when pods are
+replaced. The chart adds a checksum of the configuration to the pod template,
+so `helm upgrade` with changed values rolls out new pods. Anything that edits
+the ConfigMap directly has to roll out the deployment itself.
+
+Run `./test-nginx.sh` to test the chart's nginx settings and the runtime
+behavior in the nginx image. It needs podman or docker, and helm
+(`./install_helm.sh` installs helm to `/tmp/helm`). It runs nginx as an
+arbitrary non-root UID with the chart's container arguments and rotates the
+certificate the way the kubelet updates a secret volume, which emulates but
+does not replace testing with a real kubelet and the service CA operator. Set
+`TEST_IMAGE` to test an image built from the [Dockerfile](Dockerfile).
+
+### TLS security profile
+
+The chart sets the nginx TLS protocols and ciphers explicitly from
+`plugin.tls`, whose fields mirror the `TLSProfileSpec` of the OpenShift
+[`config.openshift.io/v1` TLS security profile](https://github.com/openshift/api/blob/master/config/v1/types_tlssecurityprofile.go).
+The defaults are the protocol versions and ciphers of the OpenShift
+**Intermediate** profile: TLS 1.2 or later, with the profile's TLS 1.2 ciphers
+and TLS 1.3 cipher suites. Intermediate is the platform default when the
+cluster `APIServer` resource does not set `spec.tlsSecurityProfile`. The API
+notes that this default can change in later releases. `groups` is empty by
+default, so the key exchange groups come from the image's system crypto policy
+rather than from the profile's group list; set `groups` to apply a list.
+
+The values are rendered as follows:
+
+| Value | nginx directive |
+| --- | --- |
+| `minTLSVersion: VersionTLS12` | `ssl_protocols TLSv1.2 TLSv1.3;` |
+| `minTLSVersion: VersionTLS13` | `ssl_protocols TLSv1.3;` |
+| `ciphers` entries without a `TLS_` prefix (TLS 1.2) | `ssl_ciphers`, required for `VersionTLS12` |
+| `ciphers` entries with a `TLS_` prefix (TLS 1.3) | `ssl_conf_command Ciphersuites`; without them the TLS 1.3 suites come from the image's system crypto policy |
+| `groups` (optional) | `ssl_ecdh_curve`; empty uses the image's system crypto policy |
+
+`VersionTLS10` and `VersionTLS11`, used by the Old profile, are rejected
+because the system crypto policy of the RHEL 9 based nginx image does not allow
+TLS versions below 1.2.
+
+For example, to use the Modern profile:
+
+```shell
+helm upgrade -i my-plugin charts/openshift-console-plugin -n my-namespace --set plugin.image=my-plugin-image-location \
+  --set plugin.tls.minTLSVersion=VersionTLS13 \
+  --set-json 'plugin.tls.ciphers=["TLS_AES_128_GCM_SHA256","TLS_AES_256_GCM_SHA384","TLS_CHACHA20_POLY1305_SHA256"]'
+```
+
+The chart and the image do not read any cluster configuration. The plugin
+serves the configured values regardless of the cluster's TLS security profile,
+so fixed defaults alone do not make it follow cluster TLS policy.
+
+#### Following the cluster TLS profile from an operator
+
+An operator that deploys a plugin built from this template and has to follow
+the cluster TLS configuration is responsible for resolving it, rendering the
+nginx settings and confirming the result:
+
+1. Watch the `apiservers.config.openshift.io` resource named `cluster`.
+2. Decide from `spec.tlsAdherence` whether the plugin has to honor the cluster
+   profile, using `ShouldHonorClusterTLSProfile` from the library-go
+   [`pkg/crypto`](https://github.com/openshift/library-go/blob/master/pkg/crypto/tls_adherence.go)
+   package. When the field is unset or `LegacyAdheringComponentsOnly`,
+   components that did not previously follow the cluster profile may keep their
+   own TLS configuration. With `StrictAllComponents`, or a value the operator
+   does not recognize, the plugin must use the cluster profile unless an
+   explicit component-specific TLS configuration overrides it.
+3. Resolve `spec.tlsSecurityProfile` to a `TLSProfileSpec`: `custom` for the
+   `Custom` type, otherwise the `TLSProfiles` entry for the type from the
+   openshift/api version that matches the cluster release, with Intermediate
+   when the field is unset.
+4. Map the resolved spec to `plugin.tls`, dropping entries that this nginx and
+   OpenSSL build does not support. On FIPS clusters, keep only FIPS-approved
+   groups: library-go's `GetSecurityProfileGroups` keeps only `secp256r1`,
+   `secp384r1` and `secp521r1` when the operator runs in FIPS mode.
+   A profile that requires TLS 1.0 or 1.1 cannot be served by this image, so
+   report it in the operator's status instead of applying a different profile
+   silently.
+5. Update the nginx configuration ConfigMap, either through the chart values
+   or by rendering the equivalent `ssl_*` directives from the table above, and
+   roll out the deployment so that new pods load it: nginx does not reload its
+   configuration. With the chart, `helm upgrade` rolls out pods when the
+   rendered configuration changes.
+6. Confirm the change once the rollout has finished, for example by making a
+   TLS handshake against the plugin service, and report failures in the
+   operator's status. Apply the same steps whenever the `APIServer` resource
+   changes.
+
 ## i18n
 
 The plugin template demonstrates how you can translate messages in with [react-i18next](https://react.i18next.com/). The i18n namespace must match

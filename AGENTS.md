@@ -81,6 +81,7 @@ tsconfig.json          # TypeScript config (strict: false currently)
 rspack.config.ts      # Module federation + build config
 locales/               # i18n translation files
 charts/                # Helm chart for deployment
+nginx/test/            # nginx runtime checks run by test-nginx.sh
 integration-tests/     # Playwright e2e tests
 ```
 
@@ -165,6 +166,14 @@ helm upgrade -i my-plugin charts/openshift-console-plugin \
 ```
 
 **Note:** OpenShift 4.10 requires `--set plugin.securityContext.enabled=false`
+
+### nginx Runtime
+- The image runs `nginx -g "daemon off;"`; the chart adds `-c /etc/nginx/plugin/nginx.conf` and mounts the ConfigMap at `/etc/nginx/plugin` and the serving certificate secret at `/var/cert`
+- Certificate rotation needs no reload: the certificate paths contain the variable `$plugin_certificate_dir` (always `/var/cert`), so nginx reads the certificate and key on every full TLS handshake. Never put client input such as `$ssl_server_name` into those paths, and do not add `ssl_certificate_cache`, which the image's nginx 1.20 does not support
+- nginx reads its configuration only at startup: configuration and TLS setting changes take effect through a rollout (the chart's `checksum/nginx-conf` pod annotation)
+- Never mount the nginx configuration or certificate with `subPath`: Kubernetes does not update `subPath` mounts
+- nginx TLS settings come from `plugin.tls` in the chart values (default: OpenShift Intermediate profile); the chart does not read cluster TLS configuration
+- Run `./test-nginx.sh` (podman or docker, and helm) after changing the Dockerfile or the chart's nginx configuration
 
 ## Important Constraints & Gotchas
 

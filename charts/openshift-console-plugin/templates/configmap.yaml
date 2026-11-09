@@ -14,11 +14,21 @@ data:
       include            /etc/nginx/mime.types;
       default_type       application/octet-stream;
       keepalive_timeout  65;
+      # The certificate paths below contain a variable, so nginx reads the
+      # certificate and key from the mounted secret on every full TLS
+      # handshake and a rotated serving certificate is used without a reload
+      # or restart. The map has a constant source and only a default, so the
+      # directory is always the fixed secret mount: nothing the client sends,
+      # such as the TLS server name, is used in the path.
+      map "" $plugin_certificate_dir {
+        default {{ include "openshift-console-plugin.certificateDir" . }};
+      }
       server {
         listen              {{ .Values.plugin.port }} ssl;
         listen              [::]:{{ .Values.plugin.port }} ssl;
-        ssl_certificate     /var/cert/tls.crt;
-        ssl_certificate_key /var/cert/tls.key;
+        ssl_certificate     $plugin_certificate_dir/tls.crt;
+        ssl_certificate_key $plugin_certificate_dir/tls.key;
+        {{- include "openshift-console-plugin.nginxTLSSettings" . | nindent 8 }}
         root                /usr/share/nginx/html;
       }
     }
