@@ -15,6 +15,10 @@ spec:
     metadata:
       labels:
             {{- include "openshift-console-plugin.labels" . | nindent 8 }}
+      annotations:
+        # nginx reads its configuration only at startup, so a changed
+        # configuration rolls out new pods.
+        checksum/nginx-conf: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       {{- with .Values.plugin.imagePullSecrets }}
       imagePullSecrets:
@@ -32,14 +36,18 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.plugin.resources | nindent 12 }}
+          # Appended to the image entrypoint (nginx -g "daemon off;") so that
+          # nginx loads the configuration from the mounted ConfigMap directory.
+          args:
+            - -c
+            - {{ include "openshift-console-plugin.nginxConfigFile" . }}
           volumeMounts:
             - name: {{ template "openshift-console-plugin.certificateSecret" . }}
               readOnly: true
-              mountPath: /var/cert
+              mountPath: {{ include "openshift-console-plugin.certificateDir" . }}
             - name: nginx-conf
               readOnly: true
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
+              mountPath: {{ include "openshift-console-plugin.nginxConfigDir" . }}
       volumes:
         - name: {{ template "openshift-console-plugin.certificateSecret" . }}
           secret:

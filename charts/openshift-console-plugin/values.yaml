@@ -26,6 +26,32 @@ plugin:
       memory: 50Mi
   basePath: /
   certificateSecretName: ""
+  # TLS settings for the plugin's nginx server. The fields mirror the
+  # config.openshift.io/v1 TLSProfileSpec (minTLSVersion, ciphers, groups) so a
+  # resolved TLS security profile can be passed through unchanged. The chart
+  # does not read any cluster configuration: the defaults below are the
+  # OpenShift Intermediate profile, which is the platform default when the
+  # cluster APIServer does not set spec.tlsSecurityProfile. See "TLS security
+  # profile" in the README for how an operator should set these values.
+  tls:
+    # Lowest TLS version to accept: VersionTLS12 or VersionTLS13.
+    minTLSVersion: VersionTLS12
+    # OpenSSL names for TLS 1.2 ciphers and IANA names (TLS_*) for TLS 1.3
+    # cipher suites. At least one TLS 1.2 cipher is required with VersionTLS12.
+    ciphers:
+      - TLS_AES_128_GCM_SHA256
+      - TLS_AES_256_GCM_SHA384
+      - TLS_CHACHA20_POLY1305_SHA256
+      - ECDHE-ECDSA-AES128-GCM-SHA256
+      - ECDHE-RSA-AES128-GCM-SHA256
+      - ECDHE-ECDSA-AES256-GCM-SHA384
+      - ECDHE-RSA-AES256-GCM-SHA384
+      - ECDHE-ECDSA-CHACHA20-POLY1305
+      - ECDHE-RSA-CHACHA20-POLY1305
+    # Optional key exchange groups in preference order, for example
+    # [X25519MLKEM768, X25519, secp256r1, secp384r1]. Empty leaves the choice
+    # to the image's system crypto policy.
+    groups: []
   serviceAccount:
     create: true
     annotations: {}
