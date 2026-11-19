@@ -80,20 +80,6 @@ This will run the OpenShift console in a container connected to the cluster
 you've logged into. The plugin HTTP server runs on port 9001 with CORS enabled.
 Navigate to <http://localhost:9000/example> to see the running plugin.
 
-#### Running start-console with Apple silicon and podman
-
-If you are using podman on a Mac with Apple silicon, `yarn run start-console`
-might fail since it runs an amd64 image. You can workaround the problem with
-[qemu-user-static](https://github.com/multiarch/qemu-user-static) by running
-these commands:
-
-```bash
-podman machine ssh
-sudo -i
-rpm-ostree install qemu-user-static
-systemctl reboot
-```
-
 ### Option 2: Docker + VSCode Remote Container
 
 Make sure the
@@ -229,6 +215,6 @@ how they can break console styles!
 
 ## References
 
-- [Console Plugin SDK README](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk)
+- [Console Plugin SDK README](https://github.com/openshift/console/tree/main/frontend/packages/console-dynamic-plugin-sdk#local-plugin-development)
 - [Customization Plugin Example](https://github.com/spadgett/console-customization-plugin)
 - [Dynamic Plugin Enhancement Proposal](https://github.com/openshift/enhancements/blob/master/enhancements/console/dynamic-plugins.md)
